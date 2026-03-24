@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
     public enum PlayerState {BROWSING, IN, READING, OUT, TITLE};
-    
+
     public static PlayerState currentState;
     public static PlayerState lastState;
     public static float timeOfTransition;
@@ -19,6 +17,7 @@ public class PlayerController : MonoBehaviour
     {
         // currentState = PlayerState.TITLE;
         currentState = PlayerState.BROWSING;
+        lastState = PlayerState.BROWSING;
     }
 
     public void ToTitleScreen()
@@ -33,47 +32,24 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    IEnumerator Twinkle()
-    {
-        Transform randomBook = bookRecList.GetChild(Random.Range(0, bookRecList.childCount));
-        randomBook.GetComponent<Renderer>().material.SetColor("_EmissionColor", new Color(0.6f, 0.6f, 0.6f, 1));
-        yield return new WaitForSeconds(0.5f);
-        randomBook.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.black);
-    }
-
     void Update()
     {
-/*        if (currentState == PlayerState.BROWSING && (Time.time - timeOfTransition) > 10) 
-        {
-            StartCoroutine(Twinkle());
-            timeOfTransition = Time.time; // reset timer
-        }*/
+        helpButton.interactable = (currentState == PlayerState.BROWSING || currentState == PlayerState.TITLE);
 
-            // Debug.Log(currentState);
-        if (currentState != PlayerState.BROWSING && currentState != PlayerState.TITLE)
+        if (currentState != lastState)
         {
-            helpButton.interactable = false;
-        }
-        else
-        {
-            helpButton.interactable = true;
+            if (currentState == PlayerState.IN)
+                bookDisplay.MoveBookIn();
+            else if (currentState == PlayerState.OUT)
+                bookDisplay.MoveBookOut();
+
+            lastState = currentState;
         }
 
-        if (currentState == PlayerState.IN)
+        if (currentState == PlayerState.READING && Input.GetMouseButtonDown(0))
         {
-            bookDisplay.MoveBookIn();
-        } 
-        else if (currentState == PlayerState.OUT)
-        {
-            bookDisplay.MoveBookOut();
+            currentState = PlayerState.OUT;
+            timeOfTransition = Time.time;
         }
-        else if (currentState == PlayerState.READING)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                currentState = PlayerState.OUT;
-                timeOfTransition = Time.time; 
-            }
-        } 
     }
 }

@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class ClickInteraction : MonoBehaviour
 {
@@ -23,7 +22,7 @@ public class ClickInteraction : MonoBehaviour
     {
         if (PlayerController.currentState == PlayerController.PlayerState.BROWSING)
         {
-            _renderer.material.SetColor("_EmissionColor", new Color(0.6f, 0.6f, 0.6f, 1));
+            _renderer.material.DOColor(new Color(0.6f, 0.6f, 0.6f, 1f), "_EmissionColor", 0.15f);
             bookDisplay.bookTitleTextbox.text = bookTitle;
             audioSource.PlayOneShot(beepSound);
         }
@@ -33,7 +32,7 @@ public class ClickInteraction : MonoBehaviour
     {
         if (PlayerController.currentState == PlayerController.PlayerState.BROWSING)
         {
-            _renderer.material.SetColor("_EmissionColor", Color.black);
+            _renderer.material.DOColor(Color.black, "_EmissionColor", 0.15f);
             bookDisplay.bookTitleTextbox.text = "";
         }
     }
@@ -43,7 +42,7 @@ public class ClickInteraction : MonoBehaviour
         if (PlayerController.currentState == PlayerController.PlayerState.BROWSING)
         {
             PlayerController.timeOfTransition = Time.time;
-            _renderer.material.SetColor("_EmissionColor", Color.black);
+            _renderer.material.DOColor(Color.black, "_EmissionColor", 0.15f);
             bookDisplay.bookResponseImage.sprite = bookResponseImageSprite;
             bookDisplay.bookResponseImageShadow.sprite = bookResponseImageSprite;
             bookDisplay.bookResponseAudio = bookResponseAudio;
@@ -67,5 +66,4 @@ public class ClickInteraction : MonoBehaviour
     {
         PlayBookAnimation();
     }
-
 }

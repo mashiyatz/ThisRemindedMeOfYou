@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System;
-using UnityEditor.Experimental.GraphView;
+using DG.Tweening;
 
 public class BookDisplay : MonoBehaviour
 {
@@ -21,9 +18,9 @@ public class BookDisplay : MonoBehaviour
     public AudioClip bookResponseAudio;
     public AudioSource vocalAudioSource;
     public AudioSource bgAudioSource;
-
     public AudioClip pageFlippingSound;
-    private Boolean isPlaying = false;
+
+    private const float MoveSpeed = 5f;
 
     void Start()
     {
@@ -32,71 +29,60 @@ public class BookDisplay : MonoBehaviour
         bookSpotlight.intensity = 0;
     }
 
-    void Update()
-    {
-        bookBackgroundMaterial.color = Color.Lerp(
-            new Color(0, 0, 0, 0),
-            new Color(0, 0, 0, 0.6f),
-            (5 - Mathf.Abs(bookEndPosition.x - book.transform.localPosition.x)) / 5
-        );
-
-        bookSpotlight.intensity = Mathf.Lerp(0, 3, 5 - Mathf.Abs(book.transform.localPosition.x) / 5);
-
-        if (bookResponseImage)
-        {
-            bookResponseImage.color = Color.Lerp(
-                new Color(0, 0, 0, 0),
-                new Color(0, 0, 0, 1f),
-                (5 - Mathf.Abs(bookEndPosition.x - book.transform.localPosition.x)) / 5
-            );
-            bookResponseImageShadow.color = Color.Lerp(
-                new Color(1, 1, 1, 0),
-                new Color(1, 1, 1, 1f),
-                (5 - Mathf.Abs(bookEndPosition.x - book.transform.localPosition.x)) / 5
-            );
-        }
-
-        if (vocalAudioSource.isPlaying && !isPlaying) { isPlaying = true; Debug.Log("Audio playing."); }
-        else if (!vocalAudioSource.isPlaying && isPlaying) { isPlaying = false; Debug.Log("Audio stopped."); }
-        
-    }
-
     public void MoveBookIn()
     {
-        if (book.transform.localPosition != bookEndPosition)
+        float duration = Vector3.Distance(bookStartPosition, bookEndPosition) / MoveSpeed;
+
+        bgAudioSource.PlayOneShot(pageFlippingSound);
+        bookRenderer.material.mainTexture = bookTexture;
+
+        book.transform.DOKill();
+        book.transform.DOLocalMove(bookEndPosition, duration)
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(() =>
+            {
+                vocalAudioSource.PlayOneShot(bookResponseAudio);
+                PlayerController.currentState = PlayerController.PlayerState.READING;
+            });
+
+        DOTween.To(() => bookBackgroundMaterial.color,
+                   x => bookBackgroundMaterial.color = x,
+                   new Color(0, 0, 0, 0.6f), duration);
+
+        bookSpotlight.DOIntensity(3f, duration);
+
+        if (bookResponseImage != null)
         {
-            if (book.transform.localPosition == bookStartPosition) bgAudioSource.PlayOneShot(pageFlippingSound);
-            bookRenderer.material.mainTexture = bookTexture;
-            book.transform.localPosition =
-                Vector3.MoveTowards(
-                    book.transform.localPosition,
-                    bookEndPosition,
-                    Time.deltaTime* 5
-                    );
-        }
-        else
-        {
-            vocalAudioSource.PlayOneShot(bookResponseAudio);
-            PlayerController.currentState = PlayerController.PlayerState.READING;
+            bookResponseImage.DOColor(new Color(0, 0, 0, 1f), duration);
+            bookResponseImageShadow.DOColor(new Color(1, 1, 1, 1f), duration);
         }
     }
 
     public void MoveBookOut()
     {
-        if (book.transform.localPosition != bookStartPosition)
+        float duration = Vector3.Distance(bookStartPosition, bookEndPosition) / MoveSpeed;
+
+        bookTitleTextbox.text = "";
+
+        book.transform.DOKill();
+        book.transform.DOLocalMove(bookStartPosition, duration)
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(() =>
+            {
+                vocalAudioSource.Stop();
+                PlayerController.currentState = PlayerController.PlayerState.BROWSING;
+            });
+
+        DOTween.To(() => bookBackgroundMaterial.color,
+                   x => bookBackgroundMaterial.color = x,
+                   new Color(0, 0, 0, 0f), duration);
+
+        bookSpotlight.DOIntensity(0f, duration);
+
+        if (bookResponseImage != null)
         {
-            bookTitleTextbox.text = "";
-            book.transform.localPosition =
-                Vector3.MoveTowards(
-                    book.transform.localPosition,
-                    bookStartPosition,
-                    Time.deltaTime * 5
-                    );
-        }
-        else
-        {
-            vocalAudioSource.Stop();
-            PlayerController.currentState = PlayerController.PlayerState.BROWSING;
+            bookResponseImage.DOColor(new Color(0, 0, 0, 0f), duration);
+            bookResponseImageShadow.DOColor(new Color(1, 1, 1, 0f), duration);
         }
     }
 }

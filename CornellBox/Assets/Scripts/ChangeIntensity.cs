@@ -1,31 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class ChangeIntensity : MonoBehaviour
 {
-    private Light pointLight;
-    private bool addIntensity;
-    // Doesn't work if the lighting is baked.
-
+    // Note: does not work with baked lighting.
+    public float minIntensity = 0.6f;
+    public float maxIntensity = 1.4f;
+    public float pulseDuration = 8f;
 
     void Start()
     {
-        pointLight = this.GetComponent<Light>();
-        pointLight.intensity = 0.6f;
-        addIntensity = true;
-    }
-
-    void Update()
-    {
-        if (addIntensity)
-        {
-            pointLight.intensity += 0.1f * Time.deltaTime;
-            if (pointLight.intensity >= 1.4f) addIntensity = false;
-        }
-        else {
-            pointLight.intensity -= 0.1f * Time.deltaTime;
-            if (pointLight.intensity <= 0.6f) addIntensity = true;
-        }
+        Light pointLight = GetComponent<Light>();
+        pointLight.intensity = minIntensity;
+        pointLight.DOIntensity(maxIntensity, pulseDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine);
     }
 }

@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class ChangeBackgroundColor : MonoBehaviour
 {
@@ -11,32 +10,21 @@ public class ChangeBackgroundColor : MonoBehaviour
     public float inDuration;
     public float outDuration;
 
-    private bool lightUp;
-    [SerializeField] private float counter;
-
     void Start()
     {
         cam = Camera.main;
         cam.backgroundColor = darkColor;
         windowMaterial.color = darkColor;
-        lightUp = true;
-        counter = 0;
-    }
 
-    void Update()
-    {
-        if (lightUp) {
-            counter += Time.deltaTime / inDuration;
-            if (counter >= 1f) lightUp = false;
-        }
-        else {
-            counter -= Time.deltaTime / outDuration;
-            if (counter <= 0f) lightUp = true;
-        }
-
-        Mathf.Clamp(counter, 0, 1);
-        cam.backgroundColor = Color.Lerp(darkColor, lightColor, counter);
-        windowMaterial.color = Color.Lerp(darkColor, lightColor, counter);
-
+        Sequence cycle = DOTween.Sequence();
+        cycle.Append(DOTween.To(
+            () => cam.backgroundColor,
+            x => { cam.backgroundColor = x; windowMaterial.color = x; },
+            lightColor, inDuration));
+        cycle.Append(DOTween.To(
+            () => cam.backgroundColor,
+            x => { cam.backgroundColor = x; windowMaterial.color = x; },
+            darkColor, outDuration));
+        cycle.SetLoops(-1);
     }
 }
