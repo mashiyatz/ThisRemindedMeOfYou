@@ -116,7 +116,7 @@
 .hud-title {
   font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   color: rgba(244, 239, 227, 0.88);
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
   letter-spacing: 0.02em;
@@ -134,18 +134,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: none;
+  background: rgba(32, 28, 21, 0.5);
+  backdrop-filter: blur(4px);
   border: none;
-  color: rgba(244, 239, 227, 0.72);
+  border-radius: 8px;
+  color: rgba(244, 239, 227, 0.88);
   font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
   font-style: italic;
-  /* clamp: min 1rem (16px), preferred 1.25rem, capped at 1.5rem */
-  font-size: clamp(1rem, 1.25rem, 1.5rem);
+  font-size: clamp(1.5rem, 2vw, 2.25rem);
   letter-spacing: 0.02em;
   line-height: 1.5;
-  padding: 0;
+  padding: 12px 20px;
   cursor: pointer;
-  transition: color 0.25s;
+  transition: color 0.25s, background 0.25s;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
 }
 

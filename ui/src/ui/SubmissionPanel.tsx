@@ -1,8 +1,9 @@
-import { createSignal, createEffect, Show, Switch, Match } from 'solid-js';
+import { createSignal, Show, Switch, Match } from 'solid-js';
 import type { BookEntry } from '../types/BookData';
 import type { Lang } from '../types/ui';
 import T from '../i18n/translations.json';
-import WRITING_PROMPTS from '../i18n/writing_prompts.json';
+import { updateContributor } from '../supabase/submitBook';
+import { PromptSidebar } from './PromptSidebar';
 import './SubmissionPanel.css';
 
 type Step = 'form' | 'confirm' | 'thanks';
@@ -14,7 +15,7 @@ interface SubmissionPanelProps {
   setLang: (l: Lang) => void;
   onClose: () => void;
   onSubmitted: (entry: BookEntry, coverUrl: string) => void;
-  fetchCover: (title: string, author: string) => Promise<string | null>;
+  fetchCover: (title: string, author: string) => Promise<string[]>;
   submitBook:  (entry: BookEntry, coverUrl: string) => Promise<boolean>;
 }
 
@@ -30,38 +31,13 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
   const [coverUrl, setCoverUrl] = createSignal('');
   const [coverState, setCoverState] = createSignal<CoverState>('empty');
   const [errorTitle, setErrorTitle] = createSignal('');
-  const [errorAuthor, setErrorAuthor] = createSignal('');
   const [errorSubmit, setErrorSubmit] = createSignal('');
   const [submitting, setSubmitting] = createSignal(false);
-  const [promptIndex, setPromptIndex] = createSignal(-1);
-
-  const placeholderText = () => {
-    const idx = promptIndex();
-    if (idx >= 0) {
-      return WRITING_PROMPTS[lang()][idx];
-    }
-    return t('phResponse');
-  };
+  const [coverUrls, setCoverUrls] = createSignal<string[]>([]);
+  const [coverIndex, setCoverIndex] = createSignal(0);
+  const [lastSubmitted, setLastSubmitted] = createSignal<{title: string; author: string; submittedAt: string} | null>(null);
 
   let textareaRef!: HTMLTextAreaElement;
-
-  createEffect(() => {
-    const idx = promptIndex();
-    if (textareaRef && idx >= 0) {
-      textareaRef.style.animation = 'none';
-      void textareaRef.offsetHeight;
-      textareaRef.style.animation = 'promptFadeIn 0.35s ease both';
-    }
-  });
-
-  function handleRandomPrompt() {
-    const prompts = WRITING_PROMPTS[lang()];
-    let newIdx;
-    do {
-      newIdx = Math.floor(Math.random() * prompts.length);
-    } while (newIdx === promptIndex() && prompts.length > 1);
-    setPromptIndex(newIdx);
-  }
 
   type TranslationKey = keyof typeof T.en;
   const t = (k: TranslationKey): string => T[lang()][k];
@@ -82,21 +58,21 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
   }
 
   async function findCover() {
-    if (!title().trim() || !author().trim()) {
-      if (!title().trim()) setErrorTitle(t('errTitle'));
-      if (!author().trim()) setErrorAuthor(t('errAuthor'));
+    if (!title().trim()) {
+      setErrorTitle(t('errTitle'));
       return;
     }
     setCoverState('loading');
-    const url = await props.fetchCover(title(), author());
-    setCoverUrl(url || generateFallbackCover(title()));
+    const urls = await props.fetchCover(title(), author());
+    setCoverUrls(urls);
+    setCoverIndex(0);
+    setCoverUrl(urls.length > 0 ? urls[0] : generateFallbackCover(title()));
     setCoverState('loaded');
   }
 
   function validate(): boolean {
     let ok = true;
     if (!title().trim()) { setErrorTitle(t('errTitle')); ok = false; }
-    if (!author().trim()) { setErrorAuthor(t('errAuthor')); ok = false; }
     return ok;
   }
 
@@ -112,25 +88,46 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
   async function doSubmit() {
     setSubmitting(true);
     const finalCover = coverUrl();
+    const submittedAt = new Date().toISOString();
     const entry: BookEntry = {
-      title: title(), author: author(), submittedAt: new Date().toISOString(),
+      title: title(), author: author(), submittedAt,
       coverImagePath: '', coverImageUrl: finalCover,
       responseText: response(), audioPath: '', audioUrl: '',
       isHandwritten: false, wantsNarrated: false,
-      contributorName: contributor()
+      contributorName: '',
     };
     const ok = await props.submitBook(entry, finalCover);
     setSubmitting(false);
     if (!ok) { setErrorSubmit(t('errorSubmit')); setStep('form'); return; }
+    setLastSubmitted({ title: title(), author: author(), submittedAt });
     setStep('thanks');
     props.onSubmitted(entry, finalCover);
+  }
+
+  function navigateCover(dir: number) {
+    const urls = coverUrls();
+    if (urls.length < 2) return;
+    const next = (coverIndex() + dir + urls.length) % urls.length;
+    setCoverIndex(next);
+    setCoverUrl(urls[next]);
   }
 
   function reset() {
     setTitle(''); setAuthor(''); setResponse(''); setCoverUrl('');
     setCoverState('empty');
-    setErrorTitle(''); setErrorAuthor(''); setErrorSubmit('');
-    setStep('form'); setContributor(''); setPromptIndex(-1);
+    setErrorTitle(''); setErrorSubmit('');
+    setStep('form'); setContributor('');
+    setCoverUrls([]); setCoverIndex(0);
+    setLastSubmitted(null);
+  }
+
+  async function handleThanksClose() {
+    const name = contributor().trim();
+    const last = lastSubmitted();
+    if (name && last) {
+      await updateContributor(last.title, last.author, last.submittedAt, name);
+    }
+    close();
   }
 
   function close() {
@@ -140,6 +137,7 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
 
   return (
     <div class="panel-overlay" classList={{ visible: props.open }}>
+      <PromptSidebar open={props.open} step={step} lang={lang} />
       <div class="panel" classList={{ 'is-ko': lang() === 'ko' }}>
 
         <Switch>
@@ -182,6 +180,10 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
                     </Show>
                     <Show when={coverState() === 'loaded'}>
                       <img src={coverUrl()} alt="book cover" />
+                      <Show when={coverUrls().length > 1}>
+                        <button class="cover-arrow cover-arrow-prev" onClick={() => navigateCover(-1)} aria-label="Previous cover">‹</button>
+                        <button class="cover-arrow cover-arrow-next" onClick={() => navigateCover(1)} aria-label="Next cover">›</button>
+                      </Show>
                     </Show>
                   </div>
                   <button class="find-cover-btn" onClick={findCover} disabled={coverState() === 'loading'}>
@@ -194,9 +196,9 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
                     <label class="field-label" for="sp-title">{t('labelTitle')}</label>
                     <input
                       class="field-input" classList={{ 'has-error': !!errorTitle() }}
-                      id="sp-title" type="text" autocomplete="off"
+                      id="sp-title" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
                       value={title()}
-                      onInput={(e) => { setTitle(e.currentTarget.value); setErrorTitle(''); setCoverUrl(''); setCoverState('empty'); }}
+                      onInput={(e) => { setTitle(e.currentTarget.value); setErrorTitle(''); setCoverUrl(''); setCoverState('empty'); setCoverUrls([]); setCoverIndex(0); }}
                       placeholder={t('phTitle')}
                     />
                     <Show when={errorTitle()}>
@@ -206,48 +208,25 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
                   <div class="field-group">
                     <label class="field-label" for="sp-author">{t('labelAuthor')}</label>
                     <input
-                      class="field-input" classList={{ 'has-error': !!errorAuthor() }}
-                      id="sp-author" type="text" autocomplete="off"
+                      class="field-input"
+                      id="sp-author" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
                       value={author()}
-                      onInput={(e) => { setAuthor(e.currentTarget.value); setErrorAuthor(''); setCoverUrl(''); setCoverState('empty'); }}
+                      onInput={(e) => { setAuthor(e.currentTarget.value); setCoverUrl(''); setCoverState('empty'); setCoverUrls([]); setCoverIndex(0); }}
                       placeholder={t('phAuthor')}
                     />
-                    <Show when={errorAuthor()}>
-                      <p class="field-err">{errorAuthor()}</p>
-                    </Show>
                   </div>
                 </div>
               </div>
 
-              {/* Contributor moved above response — "who I am" grouped with "what book" */}
-              <div class="contributor-section">
-                <label class="field-label" for="contributor-name">{t('labelContributor')}</label>
-                <input
-                  class="field-input"
-                  id="contributor-name" type="text" autocomplete="off"
-                  value={contributor()}
-                  onInput={(e) => setContributor(e.currentTarget.value)}
-                  placeholder={t('phContributor')}
-                />
-              </div>
-
               <div class="response-section">
-                <div class="response-header">
-                  <span class="response-label">{t('labelResponse')}</span>
-                  <button
-                    class="prompt-pill"
-                    classList={{ 'is-active': promptIndex() >= 0 }}
-                    onClick={handleRandomPrompt}
-                  >
-                    ⟳ {t('promptBtn')}
-                  </button>
-                </div>
+                <span class="response-label">{t('labelResponse')}</span>
                 <textarea
                   ref={textareaRef!}
                   class="response-textarea"
+                  autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
                   value={response()}
                   onInput={(e) => setResponse(e.currentTarget.value)}
-                  placeholder={placeholderText()}
+                  placeholder={t('phResponse')}
                   rows={8}
                 />
               </div>
@@ -284,7 +263,18 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
               <span class="thanks-ornament">✦</span>
               <h2 class="thanks-heading">{t('thanksHead')}</h2>
               <p class="thanks-body">{t('thanksBody')}</p>
-              <button class="thanks-close" onClick={close}>{t('thanksClose')}</button>
+              <div class="thanks-name-section">
+                <label class="thanks-name-label" for="thanks-name">{t('labelContributor')}</label>
+                <input
+                  class="thanks-name-input"
+                  id="thanks-name" type="text"
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
+                  value={contributor()}
+                  onInput={(e) => setContributor(e.currentTarget.value)}
+                  placeholder={t('phContributor')}
+                />
+              </div>
+              <button class="thanks-close" onClick={handleThanksClose}>{t('thanksClose')}</button>
             </div>
           </Match>
 

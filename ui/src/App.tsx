@@ -26,9 +26,10 @@ export function App() {
   createEffect(() => {
     function onState(e: Event) {
       const s = (e as CustomEvent<SceneState>).detail;
-      setPanelOpen(s === SceneState.SUBMITTING);
-      if (s === SceneState.READING) setBookVisible(true);
-      if (s === SceneState.BROWSING || s === SceneState.SUBMITTING || s === SceneState.OUT) setBookVisible(false);
+      if (panelOpen() !== (s === SceneState.SUBMITTING))
+        setPanelOpen(s === SceneState.SUBMITTING);
+      if (s === SceneState.READING && !bookVisible()) setBookVisible(true);
+      if ((s === SceneState.BROWSING || s === SceneState.SUBMITTING || s === SceneState.OUT) && bookVisible()) setBookVisible(false);
     }
     stateManager.addEventListener('statechange', onState);
     onCleanup(() => stateManager.removeEventListener('statechange', onState));
@@ -84,9 +85,9 @@ export function App() {
     else stateManager.transition(SceneState.BROWSING);
   }
 
-  function handleFetchCover(title: string, author: string) {
+  function handleFetchCover(title: string, author: string): Promise<string[]> {
     if (hasUnity()) return unityBridge.fetchCover(title, author);
-    return Promise.resolve(null);
+    return Promise.resolve([]);
   }
 
   async function handleSubmitBook(entry: BookEntry, _coverUrl: string): Promise<boolean> {

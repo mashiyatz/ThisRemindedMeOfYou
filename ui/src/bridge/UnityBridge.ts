@@ -22,13 +22,16 @@ interface UnityBridgeCallbacks {
   onCoverUrl:      (url: string)      => void;
   onCoverLoading:  (loading: boolean) => void;
   onBookOpen:      (json: string)     => void;
+  onCoverUrls:     (json: string)     => void;
 }
 
 type CoverUrlListener     = (url: string)     => void;
 type CoverLoadingListener = (loading: boolean) => void;
+type CoverUrlsListener    = (urls: string[])   => void;
 
 const coverUrlListeners     = new Set<CoverUrlListener>();
 const coverLoadingListeners = new Set<CoverLoadingListener>();
+const coverUrlsListeners    = new Set<CoverUrlsListener>();
 
 /** Call once before mounting SolidJS — registers window.unityBridge and feeds stateManager. */
 export function initUnityBridge(): void {
@@ -37,6 +40,12 @@ export function initUnityBridge(): void {
     onBookHighlight: (t)       => stateManager.dispatchEvent(new CustomEvent('bookhighlight', { detail: t })),
     onCoverUrl:      (url)     => coverUrlListeners.forEach(fn => fn(url)),
     onCoverLoading:  (loading) => coverLoadingListeners.forEach(fn => fn(loading)),
+    onCoverUrls:     (json)    => {
+      try {
+        const urls = JSON.parse(json) as string[];
+        coverUrlsListeners.forEach(fn => fn(urls));
+      } catch { /* ignore malformed JSON */ }
+    },
     onBookOpen:      (json)    => stateManager.dispatchEvent(
       new CustomEvent('bookopen', { detail: JSON.parse(json) as BookOpenData })
     ),
@@ -56,29 +65,33 @@ export const unityBridge = {
     getUnity()?.SendMessage('WebGLBridge', 'ReceiveClosePanel');
   },
 
-  /** Asks Unity to fetch a book cover via BookCoverService. Resolves with URL or null. */
-  fetchCover(title: string, author: string): Promise<string | null> {
+  /** Asks Unity to fetch book covers via BookCoverService. Resolves with all URLs (empty if none). */
+  fetchCover(title: string, author: string): Promise<string[]> {
     return new Promise((resolve) => {
-      let latestUrl: string | null = null;
+      let collectedUrls: string[] = [];
+      let hasResolved = false;
 
-      const urlListener: CoverUrlListener = (url) => {
-        if (url) latestUrl = url;
+      const urlsListener: CoverUrlsListener = (urls) => {
+        if (urls.length > 0) collectedUrls = urls;
       };
       const loadingListener: CoverLoadingListener = (loading) => {
-        if (!loading) {
-          coverUrlListeners.delete(urlListener);
+        if (!loading && !hasResolved) {
+          hasResolved = true;
+          coverUrlsListeners.delete(urlsListener);
           coverLoadingListeners.delete(loadingListener);
-          resolve(latestUrl);
+          resolve(collectedUrls);
         }
       };
 
-      coverUrlListeners.add(urlListener);
+      const unity = getUnity();
+      if (!unity) {
+        resolve([]);
+        return;
+      }
+
+      coverUrlsListeners.add(urlsListener);
       coverLoadingListeners.add(loadingListener);
-      getUnity()?.SendMessage(
-        'WebGLBridge',
-        'ReceiveFetchCover',
-        JSON.stringify({ title, author }),
-      );
+      unity.SendMessage('WebGLBridge', 'ReceiveFetchCover', JSON.stringify({ title, author }));
     });
   },
 

@@ -15,7 +15,14 @@
     "How did you feel after you turned the last page?",
     "What memory does this book hold for you?",
     "Has this book aged with you, or stayed the same?",
-    "What color, sound, or smell does this book bring to mind?"
+    "What color, sound, or smell does this book bring to mind?",
+    "What would someone understand about you if they read this book?",
+    "What story from your own life does this book remind you of?",
+    "Is there something this book says better than you could?",
+    "What part of this book feels like it belongs to you?",
+    "Who did you want to tell first when you finished it?",
+    "What does this book understand about you that others don't?",
+    "What version of you lives in these pages?"
   ],
   "ko": [
     "이 책을 처음 읽었을 때 어떤 느낌이었나요?",
@@ -33,7 +40,14 @@
     "마지막 장을 덮은 후 어떤 기분이 들었나요?",
     "이 책은 당신에게 어떤 기억을 간직하고 있나요?",
     "이 책은 당신과 함께 나이를 먹었나요, 아니면 그대로인가요?",
-    "이 책을 떠올리면 어떤 색, 소리, 냄새가 생각나나요?"
+    "이 책을 떠올리면 어떤 색, 소리, 냄새가 생각나나요?",
+    "누군가 이 책을 읽으면 나에 대해 뭘 알게 될까요?",
+    "이 책이 당신 삶의 어떤 이야기를 떠올리게 하나요?",
+    "이 책이 당신 대신 말해주는 것이 있나요?",
+    "이 책 중에서 당신의 것 같은 부분이 있나요?",
+    "다 읽고 가장 먼저 누구에게 이야기하고 싶었나요?",
+    "이 책은 당신에 대해 다른 사람들이 모르는 뭘 알고 있나요?",
+    "이 페이지 속에 어떤 당신이 살고 있나요?"
   ],
   "es": [
     "¿Qué sentiste cuando leíste esto por primera vez?",
@@ -51,6 +65,13 @@
     "¿Cómo te sentiste después de pasar la última página?",
     "¿Qué recuerdo guarda este libro para ti?",
     "¿Este libro ha envejecido contigo o se ha quedado igual?",
-    "¿Qué color, sonido u olor te trae este libro a la mente?"
+    "¿Qué color, sonido u olor te trae este libro a la mente?",
+    "¿Qué entendería alguien de ti si leyera este libro?",
+    "¿Qué historia de tu propia vida te recuerda este libro?",
+    "¿Hay algo que este libro dice mejor de lo que tú podrías?",
+    "¿Qué parte de este libro se siente como tuya?",
+    "¿A quién quisiste contarle primero cuando lo terminaste?",
+    "¿Qué entiende este libro de ti que otros no entienden?",
+    "¿Qué versión de ti vive en estas páginas?"
   ]
 }
