@@ -1,0 +1,24 @@
+{
+  "ftp": [
+    {
+      "deploy": "Production",
+      "host": "",
+      "address": "",
+      "secure": true,
+      "binary": true,
+      "passive": true,
+      "folder": ""
+    }
+  ],
+  "aws": [
+    {
+      "deployType": "Production",
+      "regionName": "USEast1",
+      "bucketName": "",
+      "remotePath": "",
+      "cloudFront": "",
+      "hostAddress": "",
+      "sourceFolder": ""
+    }
+  ]
+}

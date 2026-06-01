@@ -1,0 +1,21 @@
+{
+  "name": "unity-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "copy": "node -e \"var d='../build/ui';require('fs').mkdirSync(d,{recursive:true});require('fs').copyFileSync('dist/bundle.js',d+'/bundle.js');require('fs').copyFileSync('dist/bundle-entry.css',d+'/bundle-entry.css');require('fs').copyFileSync('dist/manifest.json',d+'/manifest.json')\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "solid-js": "^1.9.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vite-plugin-solid": "^2.11.12"
+  }
+}

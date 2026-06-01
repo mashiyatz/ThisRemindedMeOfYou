@@ -1,0 +1,9 @@
+{
+	"name": "com.babylontoolkit.editor",
+	"version": "9.6.2",
+	"description": "Babylon Toolkit Project",
+	"license": "MIT",
+	"devDependencies": {
+		"typescript": "^6.0.0"
+	}
+}

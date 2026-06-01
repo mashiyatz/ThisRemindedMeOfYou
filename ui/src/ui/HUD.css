@@ -1,0 +1,207 @@
+/* ── HUD: fixed overlay with three positioned zones ── */
+
+.hud {
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.hud.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Top-left: language selector ── */
+
+.hud-lang {
+  position: fixed;
+  top: 28px;
+  left: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.hud-lang-btn {
+  background: none;
+  border: none;
+  /* generous touch target without disturbing layout */
+  padding: 8px 4px;
+  margin: -8px -4px;
+  font-family: 'Lora', 'Noto Serif KR', Georgia, serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 227, 0.4);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1.5;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.hud-lang-btn:focus-visible {
+  outline: 2px solid rgba(244, 239, 227, 0.7);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.hud-lang-btn:hover {
+  color: rgba(244, 239, 227, 0.85);
+}
+
+.hud-lang-btn.active {
+  color: rgba(244, 239, 227, 0.92);
+}
+
+.hud-lang-sep {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 0.8rem;
+  color: rgba(244, 239, 227, 0.18);
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ── Top-right: fullscreen toggle ── */
+
+.hud-fullscreen-btn {
+  position: fixed;
+  top: 28px;
+  right: 32px;
+  pointer-events: auto;
+  background: none;
+  border: none;
+  color: rgba(244, 239, 227, 0.4);
+  cursor: pointer;
+  padding: 8px;
+  margin: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.hud-fullscreen-btn:hover {
+  color: rgba(244, 239, 227, 0.85);
+}
+
+.hud-fullscreen-btn:focus-visible {
+  outline: 2px solid rgba(244, 239, 227, 0.7);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Bottom-left: hovered book title ── */
+
+.hud-book-title {
+  position: fixed;
+  bottom: 28px;
+  left: 32px;
+  max-width: 320px;
+  animation: hudTitleIn 0.35s ease both;
+}
+
+@keyframes hudTitleIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hud-book-rule {
+  width: 28px;
+  height: 1px;
+  background: rgba(244, 239, 227, 0.3);
+  margin-bottom: 10px;
+}
+
+.hud-title {
+  font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  color: rgba(244, 239, 227, 0.88);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ── Bottom-right: leave a book button ── */
+
+.leave-book-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 32px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: rgba(244, 239, 227, 0.72);
+  font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
+  font-style: italic;
+  /* clamp: min 1rem (16px), preferred 1.25rem, capped at 1.5rem */
+  font-size: clamp(1rem, 1.25rem, 1.5rem);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.25s;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+}
+
+.leave-book-btn:focus-visible {
+  outline: 2px solid rgba(244, 239, 227, 0.7);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.leave-book-btn:hover {
+  color: rgba(244, 239, 227, 1);
+}
+
+.leave-book-arrow {
+  font-style: normal;
+  opacity: 0.55;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  display: inline-block;
+}
+
+.leave-book-btn:hover .leave-book-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+/* ── Responsive: shrink HUD chrome on small screens ─────────── */
+@media (max-width: 480px) {
+  .hud-lang {
+    top: 16px;
+    left: 20px;
+    gap: 6px;
+  }
+
+  .hud-lang-btn {
+    font-size: 0.85rem;
+  }
+
+  .hud-book-title {
+    bottom: 16px;
+    left: 20px;
+    max-width: calc(100vw - 160px);
+  }
+
+  .hud-title {
+    font-size: 1.05rem;
+  }
+
+  .hud-fullscreen-btn {
+    top: 16px;
+    right: 20px;
+  }
+
+  .leave-book-btn {
+    bottom: 16px;
+    right: 20px;
+    font-size: 1rem;
+    gap: 7px;
+  }
+}

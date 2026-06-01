@@ -1,0 +1,10 @@
+{
+  "name": "This Reminded Me Of You",
+  "short_name": "Reminded Me",
+  "description": "Explore a living room, pick up books, and read handwritten dedications.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0C0A07",
+  "theme_color": "#0C0A07",
+  "icons": []
+}

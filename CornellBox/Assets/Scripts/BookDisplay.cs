@@ -24,6 +24,24 @@ public class BookDisplay : MonoBehaviour
 
     void Start()
     {
+        // Compute an off-screen start position just past the left edge of the viewport,
+        // at the same world depth and height as bookEndPosition.
+        if (Camera.main != null)
+        {
+            Transform parent = book.transform.parent;
+            Vector3 worldEnd = parent != null
+                ? parent.TransformPoint(bookEndPosition)
+                : bookEndPosition;
+            float depth = worldEnd.z - Camera.main.transform.position.z;
+            float leftEdgeX  = Camera.main.ViewportToWorldPoint(new Vector3(0f, 0.5f, depth)).x;
+            float rightEdgeX = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0.5f, depth)).x;
+            float screenWidth = rightEdgeX - leftEdgeX;
+            Vector3 worldStart = new Vector3(leftEdgeX - screenWidth, worldEnd.y, worldEnd.z);
+            bookStartPosition = parent != null
+                ? parent.InverseTransformPoint(worldStart)
+                : worldStart;
+        }
+
         book.transform.localPosition = bookStartPosition;
         bookBackgroundMaterial.color = new Color(0, 0, 0, 0);
         bookSpotlight.intensity = 0;

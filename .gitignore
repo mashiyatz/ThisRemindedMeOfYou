@@ -1,0 +1,53 @@
+# Unity WebGL build output (use docs/ for GitHub Pages, build/ for local testing)
+build/
+
+# Node
+node_modules/
+
+# Local env — credentials must not be committed
+ui/.env
+
+# Build output directories (SolidJS/Babylon.js)
+dist/
+
+# Third-party Unity assets (Asset Store / Package Manager)
+CornellBox/Assets/FurnitureAssets/
+CornellBox/Assets/3dizart Books Pack/
+CornellBox/Assets/DOTween/
+CornellBox/Assets/TextMesh Pro/
+CornellBox/Assets/Gwangju_3D asset/
+CornellBox/Assets/Customizable Skybox/
+CornellBox/Assets/[Config]/
+CornellBox/Assets/[Public]/
+
+# Unity auto-generated (IDE projects, cache, user settings, logs)
+CornellBox/Assembly-CSharp*.csproj
+CornellBox/Assembly-CSharp*.sln
+CornellBox/.vs/
+CornellBox/Library/
+CornellBox/Logs/
+CornellBox/UserSettings/
+CornellBox/obj/
+
+# Asset Store / third-party content packs
+CornellBox/Assets/Materials/YughuesFreeFlooringMaterials/
+CornellBox/Assets/Fonts/
+CornellBox/Assets/KoreanInspo/
+CornellBox/Assets/Editor/
+CornellBox/Assets/ImageAssets/TheWorldsBorough/
+
+# Generated / testing artifacts
+CornellBox/Recordings/
+
+# Additional third-party Unity assets
+CornellBox/Assets/ReadingRoom/
+CornellBox/Assets/ShelfObjects/
+CornellBox/Assets/TextureHaven/
+CornellBox/Assets/Screenshots/
+CornellBox/Assets/URPDefaultResources/
+
+# Archived experimental directories
+archived/
+
+# Archived WebGL build output (GitHub Pages) — prevent future build artifacts
+docs/Build/

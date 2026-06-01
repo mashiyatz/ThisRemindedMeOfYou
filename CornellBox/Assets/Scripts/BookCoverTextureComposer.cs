@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -26,6 +27,130 @@ public static class BookCoverTextureComposer
 
     // ── Public API ───────────────────────────────────────────────────────────
 
+    private static readonly Color32[] FallbackPalette =
+    {
+        new Color32(26,  41,  64, 255),
+        new Color32(44,  64,  56, 255),
+        new Color32(88,  30,  30, 255),
+        new Color32(42,  46,  66, 255),
+        new Color32(58,  42,  30, 255),
+        new Color32(26,  27,  44, 255),
+        new Color32(58,  38,  64, 255),
+    };
+
+    /// <summary>Deterministic solid-color cover from title hash, at 256×400.</summary>
+    public static Texture2D GenerateSolidCover(string title)
+    {
+        int hash = 0;
+        foreach (char c in title) hash = (hash * 31 + c) & 0xFFFF;
+        var col = FallbackPalette[Mathf.Abs(hash) % FallbackPalette.Length];
+
+        var tex = new Texture2D(256, 400, TextureFormat.RGB24, false);
+        var pixels = new Color32[256 * 400];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = col;
+        tex.SetPixels32(pixels);
+        tex.Apply();
+        return tex;
+    }
+
+    /// <summary>
+    /// Solid-color cover with title and author text composited over it.
+    /// Falls back to plain solid cover if TMP font assets are not found.
+    /// </summary>
+    public static Texture2D GenerateSolidCoverWithText(string title, string author)
+    {
+        Texture2D cover = GenerateSolidCover(title);
+
+        var titleFont  = Resources.Load<TMP_FontAsset>("Fonts/IMFellEnglish-ItalicSDF");
+        var authorFont = Resources.Load<TMP_FontAsset>("Fonts/Lora-RegularSDF");
+        if (titleFont == null || authorFont == null)
+        {
+            Debug.LogWarning("[BookCoverTextureComposer] TMP font assets not found — skipping text overlay.");
+            return cover;
+        }
+
+        int W = cover.width, H = cover.height;
+
+        var rt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+        rt.Create();
+
+        // World-space canvas: 1 world unit = 1 pixel at this camera size
+        var canvasGO = new GameObject("_BkTextCanvas") { layer = 31 };
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        var canvasRt = canvasGO.GetComponent<RectTransform>();
+        canvasRt.sizeDelta = new Vector2(W, H);
+        canvasRt.localPosition = Vector3.zero;
+
+        // Title
+        var titleGO = new GameObject("_title") { layer = 31 };
+        titleGO.transform.SetParent(canvasGO.transform, false);
+        var titleTMP = titleGO.AddComponent<TextMeshProUGUI>();
+        titleTMP.font = titleFont;
+        titleTMP.text = title;
+        titleTMP.fontSize = 24f;
+        titleTMP.color = new Color(1f, 0.97f, 0.9f, 1f);
+        titleTMP.alignment = TextAlignmentOptions.Center;
+        titleTMP.textWrappingMode = TextWrappingModes.Normal;
+        var titleRect = titleTMP.rectTransform;
+        titleRect.anchorMin = new Vector2(0.1f, 0.45f);
+        titleRect.anchorMax = new Vector2(0.9f, 0.80f);
+        titleRect.offsetMin = titleRect.offsetMax = Vector2.zero;
+
+        // Author
+        var authorGO = new GameObject("_author") { layer = 31 };
+        authorGO.transform.SetParent(canvasGO.transform, false);
+        var authorTMP = authorGO.AddComponent<TextMeshProUGUI>();
+        authorTMP.font = authorFont;
+        authorTMP.text = author.ToUpper();
+        authorTMP.fontSize = 11f;
+        authorTMP.color = new Color(1f, 0.97f, 0.9f, 0.72f);
+        authorTMP.alignment = TextAlignmentOptions.Center;
+        authorTMP.characterSpacing = 8f;
+        var authorRect = authorTMP.rectTransform;
+        authorRect.anchorMin = new Vector2(0.1f, 0.35f);
+        authorRect.anchorMax = new Vector2(0.9f, 0.48f);
+        authorRect.offsetMin = authorRect.offsetMax = Vector2.zero;
+
+        // Off-screen orthographic camera
+        var camGO = new GameObject("_BkTextCam");
+        var cam = camGO.AddComponent<Camera>();
+        cam.orthographic = true;
+        cam.orthographicSize = H * 0.5f;
+        cam.transform.position = new Vector3(0f, 0f, -10f);
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.clear;
+        cam.cullingMask = 1 << 31;
+        cam.targetTexture = rt;
+
+        cam.Render();
+
+        // Alpha-composite text pixels over solid cover
+        RenderTexture.active = rt;
+        var textTex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        textTex.ReadPixels(new Rect(0, 0, W, H), 0, 0);
+        textTex.Apply();
+        RenderTexture.active = null;
+
+        Color[] basePixels = cover.GetPixels();
+        Color[] textPixels = textTex.GetPixels();
+        for (int i = 0; i < basePixels.Length; i++)
+        {
+            float a = textPixels[i].a;
+            basePixels[i] = Color.Lerp(basePixels[i], textPixels[i], a);
+        }
+        cover.SetPixels(basePixels);
+        cover.Apply();
+
+        Object.DestroyImmediate(camGO);
+        Object.DestroyImmediate(canvasGO);
+        rt.Release();
+        Object.DestroyImmediate(rt);
+        Object.DestroyImmediate(textTex);
+
+        return cover;
+    }
+
     /// <summary>One-shot: detect UV layout and build the atlas.</summary>
     public static Texture2D BuildAtlas(Texture2D cover, Mesh mesh, int atlasSize = 1024)
     {
@@ -44,9 +169,6 @@ public static class BookCoverTextureComposer
         float splitX = combinedRect.x + combinedRect.width * 0.55f;
         Rect frontRect = Rect.MinMaxRect(splitX, combinedRect.yMin,
                                           combinedRect.xMax, combinedRect.yMax);
-
-        Debug.Log($"[BookCoverTextureComposer] Islands: {islands.Count}  " +
-                  $"Combined: {combinedRect}  Front: {frontRect}");
 
         Color fillColor = SampleSpineColor(cover);
         return Compose(cover, combinedRect, frontRect, fillColor, atlasSize);

@@ -1,0 +1,80 @@
+── 3D Models & Furniture ──────────────────────────────────────
+
+"Round Wooden Table 01 4k" (https://skfb.ly/osK6V)
+  by mohamedhussien — CC Attribution (http://creativecommons.org/licenses/by/4.0/)
+
+"Rustic chair" (https://skfb.ly/TZIr)
+  by Araon — CC Attribution (http://creativecommons.org/licenses/by/4.0/)
+
+Floor tile material
+  by Nobiax / Yughues (www.artstation.com/yughues, yughues@protonmail.com)
+
+Big Furniture Pack (Asset Store)
+  — bookshelves, cloth, wood, curtains, television set, house plants
+
+QA_Books (Asset Store)
+  — 3D book models (Books_03–34, BookS_04–11)
+
+3dizart Books Pack (Asset Store)
+  — book mesh, textures, prefabs
+
+Free Rug Pack (Asset Store)
+  — by Azerilo
+
+3Dfrk Frames with pictures (Asset Store)
+  — picture frames and paintings (Paint_01–08)
+
+TazaQuintero (Asset Store)
+  — tableware/decorative object
+
+Modular Shelf Set (ShelfObjects, Asset Store)
+  — shelf prefabs (types A–L)
+
+PBR Modular Reading Room (URP) (Asset Store)
+  — modular room kit with materials, meshes, textures
+
+── 3D Environments (Custom / Commissioned) ─────────────────────
+
+Gwangju_3D asset
+  — 3D scenes of Gwangju landmarks:
+    • Gungjeon Bakery (06_GungjeonBakery)
+    • Dong-A Silk (27_Dong-A_Silk)
+    • Jeonbyungwon Tailor Shop (24_JeonbyungwonTailorShop)
+  Includes reflection probes, lightmaps, scene profiles.
+
+── Plugins & Packages ─────────────────────────────────────────
+
+DOTween (https://dotween.demigiant.com/)
+  by Demigiant — animation tweening library (Asset Store)
+
+TextMesh Pro
+  — Unity text rendering package (SDF fonts, shaders)
+
+Customizable Skybox (Asset Store)
+  — skybox material pack
+
+[Config], [Public] (Asset Store / Unity Packages)
+  — utility asset packages
+
+── Textures ────────────────────────────────────────────────────
+
+TextureHaven bricks_4k (https://texturehaven.com/)
+  — CC0 textures (brick 4 diffuse, normal, bump, displacement, AO)
+
+── Fonts ───────────────────────────────────────────────────────
+
+Lora (https://fonts.google.com/specimen/Lora)
+  — SIL Open Font License 1.1
+
+IM Fell English (https://fonts.google.com/specimen/IM+Fell+English)
+  — SIL Open Font License 1.1
+
+Noto Serif KR (https://fonts.google.com/specimen/Noto+Serif+KR)
+  — SIL Open Font License 1.1
+
+── Audio ───────────────────────────────────────────────────────
+
+Voice recordings: custom recordings by the project authors.
+
+SFX: sources unknown — (beep, bgm, pageFlip, swoosh).
+  If you recognize these, please open an issue for proper attribution.

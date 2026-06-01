@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unity UI — Dev Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:       #F4EFE3;
+      --cream-mid:   #EDE5D3;
+      --cream-dark:  #E4DAC5;
+      --ink:         #201C15;
+      --ink-mid:     #5A5040;
+      --ink-light:   #9A8A74;
+      --rule:        rgba(110, 90, 65, 0.16);
+      --rule-strong: rgba(110, 90, 65, 0.28);
+      --accent:      #7A3320;
+      --accent-warm: #A84830;
+      --gold:        #AF8838;
+      --border:      rgba(110, 90, 65, 0.22);
+      --ff-heading:  'IM Fell English', 'Noto Serif KR', Georgia, serif;
+      --ff-body:     'Lora', 'Noto Serif KR', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* font-size: 100% lets rem units scale with browser accessibility preferences */
+    html { font-size: 100%; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1510; }
+    /* Placeholder Unity canvas for layout testing */
+    #unity-canvas {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      background: #1a1510;
+    }
+    #root {
+      position: fixed; inset: 0; pointer-events: none; z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas"></canvas>
+  <div id="root"></div>
+  <script type="module" src="/src/entry.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "en": [
+    "Share a recommendation with your neighbors",
+    "What should your friends read right now?",
+    "Leave a book for someone to find",
+    "Recommend something you love",
+    "Add your book to the table",
+    "Pass on a story worth sharing",
+    "What book is on your mind?",
+    "Give a friend a book to discover",
+    "Leave a book for the next visitor",
+    "Start a conversation with a book",
+    "Fill the table with stories you love"
+  ],
+  "ko": [
+    "이웃에게 책을 추천해 주세요",
+    "지금 친구들이 읽어야 할 책은?",
+    "누군가 발견할 책을 남겨 주세요",
+    "사랑하는 책을 추천해 주세요",
+    "테이블에 책을 올려 주세요",
+    "마음에 남은 이야기를 나눠 주세요",
+    "요즘 자주 떠오르는 책이 있나요?",
+    "친구에게 선물할 책을 알려주세요",
+    "다음 방문객을 위해 책을 남겨 주세요",
+    "책이 새로운 대화를 시작해요",
+    "의미 있는 책으로 테이블을 채워 주세요"
+  ],
+  "es": [
+    "Comparte una recomendación con tus vecinos",
+    "¿Qué deberían leer tus amigos ahora mismo?",
+    "Deja un libro para que alguien lo encuentre",
+    "Recomienda algo que ames",
+    "Añade tu libro a la mesa",
+    "Comparte una historia que vale la pena",
+    "¿Qué libro tienes en mente?",
+    "Dale a un amigo un libro por descubrir",
+    "Deja un libro para el próximo visitante",
+    "Empieza una conversación con un libro",
+    "Llena la mesa con historias que ames"
+  ]
+}

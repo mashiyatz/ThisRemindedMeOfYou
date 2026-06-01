@@ -1,5 +1,40 @@
 # This Reminded Me Of You
-Code and documentation for a Unity3D project by Jo Suk and Mashi Zaman for Hypercinema Fall 2022 at ITP. Take a break in your living room filled with books we’ve shared with you throughout years of friendship. Use mouse or scroll wheel to search the room, and click to read our dedications to you. <a href="https://youtu.be/eiOH1X2wOLE">Watch a demo here</a>, or play on your computer's web browser <a href="https://mashiyatz.github.io/ThisRemindedMeOfYou/">through here</a>.   
+Code and documentation for a Unity3D project by Jo Suk and Mashi Zaman for Hypercinema Fall 2022 at ITP.
+
+> **Note:** Third-party assets (models, textures, fonts, plugins) are excluded from git tracking.
+> See [Setup & Dependencies](#setup--dependencies) below for what to download.
+
+## Setup & Dependencies
+
+The following third-party content is **required** for the V2 scene to work.
+Install from the Unity Asset Store or Package Manager as needed:
+
+| Asset | Source | Role |
+|-------|--------|------|
+| `Assets/FurnitureAssets/` | Unity Asset Store | Room furniture FBX models + textures (tables, shelves, kiosks, display) |
+| `Assets/3dizart Books Pack/` | Unity Asset Store | Book 3D models + textures |
+| `Assets/DOTween/` | Unity Asset Store (free) | Tween animations (book animate-in/out, panel transitions, bobbing, hovers) |
+| `Assets/TextMesh Pro/` | Unity Package Manager | Text rendering for book UI and submission form |
+| `Assets/Gwangju_3D asset/` | Custom-commissioned | Korean storefront environments (Gungjeon Bakery, Dong-A Silk, Jeonbyungwon Tailor Shop) — see `credits.txt` |
+| `Assets/Customizable Skybox/` | Unity Asset Store | Skybox material |
+| `Assets/ReadingRoom/` | Unity Asset Store | Room environment mesh + textures (walls, floor, ceiling, windows, lights) |
+| `Assets/ShelfObjects/` | Unity Asset Store | Shelf decoration items (plants, frames, etc.) |
+| `Assets/TextureHaven/` | [texturehaven.com](https://texturehaven.com) (CC0) | PBR textures (bricks) |
+| `Assets/Fonts/` | Google Fonts | Display fonts: [Noto Serif KR](https://fonts.google.com/noto/specimen/Noto+Serif+KR) (Korean), [Lora](https://fonts.google.com/specimen/Lora), [IM Fell English](https://fonts.google.com/specimen/IM+Fell+English) |
+| `Assets/Materials/YughuesFreeFlooringMaterials/` | Unity Asset Store (free) | Flooring material textures |
+
+### Optional / reference content
+
+| Asset | Source | Notes |
+|-------|--------|-------|
+| `Assets/KoreanInspo/` | Original photography | Reference photos of Korean storefronts (not used in builds) |
+| `Assets/ImageAssets/TheWorldsBorough/` | Original photography | Large photo textures |
+| `Assets/Screenshots/` | Generated | Testing / presentation screenshots |
+| `Assets/URPDefaultResources/` | Unity generated | URP default resources; recreated on package re-import |
+
+---
+
+Take a break in your living room filled with books we've shared with you throughout years of friendship. Use mouse or scroll wheel to search the room, and click to read our dedications to you. <a href="https://youtu.be/eiOH1X2wOLE">Watch a demo here</a>, or play on your computer's web browser <a href="https://mashiyatz.github.io/ThisRemindedMeOfYou/">through here</a>.   
 
 <p align="center">
 <img src="https://user-images.githubusercontent.com/43973044/208791162-5f12d3ce-8a2e-4ffc-8486-3ea03391741c.png" alt="A still image of a living room that is the setting of this game and the title This Reminded Me Of You. The room, depicted in an isometric perspective, has a couch on one wall facing a TV and shelves on the opposite side. The wall between them has a pair of wall length windows with a big blue curtain covering them. On the shelves, and on a coffee table in front of the couch, are many books, some neatly arranged, others scattered.">

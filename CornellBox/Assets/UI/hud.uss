@@ -1,0 +1,44 @@
+/* ── HUD overlay ────────────────────────────────────────────────────────── */
+
+.hud {
+    position: absolute;
+    bottom: 36px;
+    left: 0;
+    right: 0;
+    align-items: center;
+    flex-direction: column;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+}
+
+.hud.hidden {
+    opacity: 0;
+}
+
+/* IM Fell English Italic — font set in tokens.uss */
+.hud-title {
+    font-size: 15px;
+    color: rgba(246, 241, 232, 0.92);
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+/* Lora Italic — font set in tokens.uss */
+.leave-book-btn {
+    font-size: 11px;
+    color: rgba(244, 239, 227, 0.85);
+    background-color: rgba(12, 10, 7, 0.20);
+    border-width: 1px;
+    border-color: rgba(244, 239, 227, 0.35);
+    border-radius: 0;
+    padding: 10px 24px;
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.25s;
+}
+
+.leave-book-btn:hover {
+    background-color: rgba(12, 10, 7, 0.35);
+    border-color: rgba(244, 239, 227, 0.70);
+    color: rgba(244, 239, 227, 1);
+}

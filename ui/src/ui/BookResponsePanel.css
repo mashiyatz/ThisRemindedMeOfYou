@@ -1,0 +1,259 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   BookResponsePanel — transparent floating inscription over the Unity scene.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.brp-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* ── Content column — right third of the screen ─────────────────────────── */
+.brp-content {
+  position: absolute;
+  top: 50%;
+  right: 6vw;
+  transform: translateY(-50%) translateX(18px);
+  width: min(38vw, 520px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  opacity: 0;
+  transition:
+    opacity   0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.brp-overlay.visible .brp-content {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ── Rule ────────────────────────────────────────────────────────────────── */
+.brp-rule {
+  width: 36px;
+  height: 1px;
+  background: rgba(244, 239, 227, 0.35);
+}
+
+/* ── Title + author ──────────────────────────────────────────────────────── */
+.brp-byline {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brp-title {
+  font-family: 'IM Fell English', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  color: rgba(244, 239, 227, 0.95);
+  text-shadow:
+    0 1px 12px rgba(0, 0, 0, 0.9),
+    0 2px 32px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.brp-author {
+  font-family: 'Lora', 'Noto Serif KR', Georgia, serif;
+  font-style: normal;
+  font-weight: 400;
+  /* min bumped from 0.78rem (12.5px) to 0.875rem (14px) for readability */
+  font-size: clamp(0.875rem, 1.1vw, 0.95rem);
+  color: rgba(244, 239, 227, 0.65); /* raised from 0.5 — better legibility */
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── Response text ───────────────────────────────────────────────────────── */
+.brp-text {
+  font-family: 'Lora', 'Noto Serif KR', Georgia, serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  color: rgba(244, 239, 227, 0.85);
+  text-shadow:
+    0 1px 8px  rgba(0, 0, 0, 0.95),
+    0 2px 24px rgba(0, 0, 0, 0.7);
+  line-height: 1.85;
+  margin: 0;
+  white-space: pre-wrap;
+  max-height: 55vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.brp-text::-webkit-scrollbar { display: none; }
+
+/* ── Handwritten image ───────────────────────────────────────────────────── */
+.brp-image {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  object-position: top left;
+  display: block;
+  filter: drop-shadow(0 2px 20px rgba(0, 0, 0, 0.8));
+}
+
+/* ── Custom audio player ─────────────────────────────────────────────────── */
+.brp-audio-wrap {
+  pointer-events: auto;
+}
+
+.brp-audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  /* touch target */
+  padding: 8px 0;
+  margin: -8px 0;
+  cursor: pointer;
+  font-family: 'Lora', Georgia, serif;
+  /* bumped from 0.78rem (12.5px) to 0.875rem (14px) */
+  font-size: 0.875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 227, 0.65); /* raised from 0.5 */
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  transition: color 0.2s;
+}
+
+.brp-audio-btn:hover { color: rgba(244, 239, 227, 0.95); }
+
+.brp-audio-btn:focus-visible {
+  outline: 2px solid rgba(244, 239, 227, 0.6);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.brp-audio-icon {
+  font-style: normal;
+  font-size: 0.9rem;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.brp-audio-btn:hover .brp-audio-icon {
+  transform: scale(1.15);
+}
+
+.brp-audio-label {
+  line-height: 1;
+}
+
+/* ── Contributor attribution ─────────────────────────────────────────────── */
+.brp-contributor {
+  font-family: 'Lora', 'Noto Serif KR', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  /* min bumped from 0.78rem to 0.875rem */
+  font-size: clamp(0.875rem, 1.1vw, 0.9rem);
+  color: rgba(244, 239, 227, 0.55); /* raised from 0.4 */
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* ── Dismiss button ──────────────────────────────────────────────────────── */
+.brp-dismiss {
+  pointer-events: auto;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  /* touch-friendly target */
+  padding: 8px 0;
+  margin: -8px 0;
+  cursor: pointer;
+  font-family: 'Lora', 'Noto Serif KR', Georgia, serif;
+  /* bumped from 0.78rem to 0.875rem */
+  font-size: 0.875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 227, 0.6); /* raised from 0.4 */
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  transition: color 0.2s;
+}
+
+.brp-dismiss:hover { color: rgba(244, 239, 227, 0.9); }
+
+.brp-dismiss:focus-visible {
+  outline: 2px solid rgba(244, 239, 227, 0.6);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.brp-dismiss-arrow {
+  font-style: normal;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.brp-dismiss:hover .brp-dismiss-arrow {
+  transform: translateX(-3px);
+}
+
+/* ── Narrow screens ──────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .brp-content {
+    right: 4vw;
+    width: min(52vw, 420px);
+  }
+}
+
+@media (max-width: 600px) {
+  .brp-content {
+    top: auto;
+    bottom: 10vh;
+    right: 5vw;
+    left: 5vw;
+    width: auto;
+    transform: translateY(10px);
+    gap: 16px;
+  }
+
+  .brp-overlay.visible .brp-content {
+    transform: translateY(0);
+  }
+
+  /* Scale up text further since the content is now full-width near the bottom */
+  .brp-title {
+    font-size: clamp(1.25rem, 5.5vw, 1.6rem);
+  }
+
+  .brp-text {
+    font-size: clamp(0.9375rem, 4vw, 1.1rem);
+    max-height: 40vh;
+  }
+
+  .brp-author,
+  .brp-audio-btn,
+  .brp-dismiss,
+  .brp-contributor {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .brp-content {
+    bottom: 8vh;
+    right: 4vw;
+    left: 4vw;
+  }
+
+  .brp-title {
+    font-size: clamp(1.1875rem, 6vw, 1.45rem);
+  }
+}

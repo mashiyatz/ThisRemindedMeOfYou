@@ -1,0 +1,4 @@
+{
+    "source": "../../WebProject/src/babylon/classes",
+    "deploy": "../../WebProject/public/scenes"
+}

@@ -1,0 +1,112 @@
+{
+  "books": [
+    {
+      "title": "Almost Transparent Blue",
+      "author": "Ryu Murakami",
+      "submittedAt": "2022-10-01",
+      "materialName": "BookMaterials/AlmostTransparentBlue",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/AlmostTransparentBlue.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/almostTransparentBlue.mp3"
+    },
+    {
+      "title": "Convenience Store Woman",
+      "author": "Sayaka Murata",
+      "submittedAt": "2022-10-05",
+      "materialName": "BookMaterials/ConvenienceStoreWoman",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/convenienceStoreWoman.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/convenienceStoreWoman.mp3"
+    },
+    {
+      "title": "Garments Against Women",
+      "author": "Anne Boyer",
+      "submittedAt": "2022-10-10",
+      "materialName": "BookMaterials/GarmentsAgainstWomen",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/garmentsAgainstWomen.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/garmentsAgainstWomen.mp3"
+    },
+    {
+      "title": "Girl, Woman, Other",
+      "author": "Bernardine Evaristo",
+      "submittedAt": "2022-10-15",
+      "materialName": "BookMaterials/GirlWomanOther",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/girlWomanOther.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/girlWomanOther.mp3"
+    },
+    {
+      "title": "The Island of Red Spider Lilies",
+      "author": "Rina Usami",
+      "submittedAt": "2022-10-20",
+      "materialName": "BookMaterials/RedSpider",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/RedSpiderLilies.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/islandOfRedSpiderLilies.mp3"
+    },
+    {
+      "title": "Men Without Women",
+      "author": "Haruki Murakami",
+      "submittedAt": "2022-10-25",
+      "materialName": "BookMaterials/MenWithoutWomen",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/MenWithoutWomen.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/menWithoutWomen.mp3"
+    },
+    {
+      "title": "Persepolis",
+      "author": "Marjane Satrapi",
+      "submittedAt": "2022-10-28",
+      "materialName": "BookMaterials/Persepolis",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/persepolis.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/persepolis.mp3"
+    },
+    {
+      "title": "Too Much and Not the Mood",
+      "author": "Durga Chew-Bose",
+      "submittedAt": "2022-11-01",
+      "materialName": "BookMaterials/TooMuchAndNotTheMood",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/tooMuchAndNotTheMood.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/tooMuchAndNotTheMood.mp3"
+    },
+    {
+      "title": "Where the Wild Ladies Are",
+      "author": "Aoko Matsuda",
+      "submittedAt": "2022-11-05",
+      "materialName": "BookMaterials/WhereTheWildLadiesAre",
+      "coverImagePath": "",
+      "responseSpriteResourcePath": "",
+      "responseSpriteImagePath": "BookResponses/WhereTheWildLadiesAre.png",
+      "responseText": "",
+      "audioResourcePath": "",
+      "audioPath": "BookAudio/whereTheWildLadiesAre.mp3"
+    }
+  ]
+}

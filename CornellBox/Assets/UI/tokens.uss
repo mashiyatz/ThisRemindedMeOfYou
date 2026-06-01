@@ -1,0 +1,71 @@
+/* ── Base font: Lora Regular inherits to all children ───────────────────── */
+.root {
+    -unity-font: url("../Fonts/Lora/static/Lora-Regular.ttf");
+}
+
+/* ── IM Fell English Regular (ornaments, non-italic headings, field text) ── */
+.lang-ornament,
+.thanks-ornament,
+.confirm-ornament,
+.field-input {
+    -unity-font: url("../Fonts/IM_Fell_English/IMFellEnglish-Regular.ttf");
+}
+
+/* ── IM Fell English Italic (italic headings) ───────────────────────────── */
+.hud-title,
+.lang-step-title,
+.form-heading,
+.confirm-heading,
+.thanks-heading {
+    -unity-font: url("../Fonts/IM_Fell_English/IMFellEnglish-Italic.ttf");
+}
+
+/* ── Lora Italic (italic body text, buttons, labels) ───────────────────── */
+.lang-step-alts,
+.form-date,
+.find-cover-btn,
+.response-textarea,
+.check-label,
+.field-err,
+.submit-err,
+.cancel-btn,
+.submit-btn,
+.confirm-body,
+.confirm-yes,
+.confirm-no,
+.thanks-body,
+.thanks-close,
+.leave-book-btn {
+    -unity-font: url("../Fonts/Lora/static/Lora-Italic.ttf");
+}
+
+/* ── Korean language override (higher specificity beats individual rules) ── */
+.is-ko .lang-ornament,
+.is-ko .lang-step-title,
+.is-ko .lang-step-alts,
+.is-ko .lang-btn,
+.is-ko .form-heading,
+.is-ko .form-date,
+.is-ko .field-label,
+.is-ko .field-input,
+.is-ko .field-err,
+.is-ko .response-label,
+.is-ko .response-textarea,
+.is-ko .check-label,
+.is-ko .submit-err,
+.is-ko .cancel-btn,
+.is-ko .submit-btn,
+.is-ko .lang-pill,
+.is-ko .find-cover-btn,
+.is-ko .cover-placeholder-label,
+.is-ko .confirm-ornament,
+.is-ko .confirm-heading,
+.is-ko .confirm-body,
+.is-ko .confirm-yes,
+.is-ko .confirm-no,
+.is-ko .thanks-ornament,
+.is-ko .thanks-heading,
+.is-ko .thanks-body,
+.is-ko .thanks-close {
+    -unity-font: url("../Fonts/Noto_Serif_KR/NotoSerifKR-VariableFont_wght.ttf");
+}
