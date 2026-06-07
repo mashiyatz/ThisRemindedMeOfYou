@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class V2BookInteraction : MonoBehaviour
 {
     public static event System.Action OnMouseEnterBook;
+    public static readonly List<V2BookInteraction> AllBooks = new();
 
     private Renderer _renderer;
     private bool _outlineShowing;
@@ -24,6 +26,10 @@ public class V2BookInteraction : MonoBehaviour
     private Vector2   _mouseDownScreenPos;
     private Plane     _dragPlane;
     private Vector3   _dragOffset;
+
+    // Two-finger rotation state
+    private bool    _isRotating;
+    private float   _lastRotationAngle;
 
     // Pre-allocated buffer for table raycast checks (shared across all book instances)
     private static readonly RaycastHit[] _raycastBuffer = new RaycastHit[8];
@@ -58,6 +64,12 @@ public class V2BookInteraction : MonoBehaviour
     void Awake()
     {
         _renderer = GetComponentInChildren<Renderer>();
+        AllBooks.Add(this);
+    }
+
+    void OnDestroy()
+    {
+        AllBooks.Remove(this);
     }
 
     public void LightUp()
@@ -78,6 +90,37 @@ public class V2BookInteraction : MonoBehaviour
             HideOutline();
             V2BookDisplay.OnBookHighlight?.Invoke("");
         }
+    }
+
+    public static void DimAll()
+    {
+        for (int i = AllBooks.Count - 1; i >= 0; i--)
+            AllBooks[i].Dim();
+    }
+
+    void Update()
+    {
+        if (!_isDragging || Input.touchCount < 2)
+        {
+            if (_isRotating) _isRotating = false;
+            return;
+        }
+
+        Vector2 t0 = Input.touches[0].position;
+        Vector2 t1 = Input.touches[1].position;
+        float angle = Mathf.Atan2(t1.y - t0.y, t1.x - t0.x) * Mathf.Rad2Deg;
+
+        if (!_isRotating)
+        {
+            _isRotating = true;
+        }
+        else
+        {
+            float delta = Mathf.DeltaAngle(_lastRotationAngle, angle);
+            transform.Rotate(0f, delta, 0f, Space.World);
+        }
+
+        _lastRotationAngle = angle;
     }
 
     public void PlayBookAnimation()

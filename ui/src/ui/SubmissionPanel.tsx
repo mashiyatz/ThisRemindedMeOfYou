@@ -17,6 +17,7 @@ interface SubmissionPanelProps {
   onSubmitted: (entry: BookEntry, coverUrl: string) => void;
   fetchCover: (title: string, author: string) => Promise<string[]>;
   submitBook:  (entry: BookEntry, coverUrl: string) => Promise<boolean>;
+  onContributor: (title: string, author: string, name: string) => void;
 }
 
 export function SubmissionPanel(props: SubmissionPanelProps) {
@@ -126,6 +127,7 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
     const last = lastSubmitted();
     if (name && last) {
       await updateContributor(last.title, last.author, last.submittedAt, name);
+      props.onContributor(last.title, last.author, name);
     }
     close();
   }

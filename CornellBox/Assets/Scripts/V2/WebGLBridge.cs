@@ -20,6 +20,7 @@ public class WebGLBridge : MonoBehaviour
     [DllImport("__Internal")] static extern void JS_NotifyCoverLoading(bool loading);
     [DllImport("__Internal")] static extern void JS_NotifySubmitResult(bool ok);
     [DllImport("__Internal")] static extern void JS_NotifyBookOpen(string json);
+    [DllImport("__Internal")] static extern void JS_NotifyCoverUrls(string urlsJson);
 #else
     static void JS_NotifyStateChange(string _) {}
     static void JS_NotifyBookHighlight(string _) {}
@@ -27,6 +28,7 @@ public class WebGLBridge : MonoBehaviour
     static void JS_NotifyCoverLoading(bool _) {}
     static void JS_NotifySubmitResult(bool _) {}
     static void JS_NotifyBookOpen(string _) {}
+    static void JS_NotifyCoverUrls(string _) {}
 #endif
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -48,6 +50,7 @@ public class WebGLBridge : MonoBehaviour
             uiBridge.OnCoverLoadingChanged += HandleCoverLoading;
             uiBridge.OnSubmitCompleted     += HandleSubmitCompleted;
             uiBridge.OnBookOpenData        += HandleBookOpen;
+            uiBridge.OnCoverUrlsChanged    += HandleCoverUrls;
         }
     }
 
@@ -60,6 +63,7 @@ public class WebGLBridge : MonoBehaviour
             uiBridge.OnCoverLoadingChanged -= HandleCoverLoading;
             uiBridge.OnSubmitCompleted     -= HandleSubmitCompleted;
             uiBridge.OnBookOpenData        -= HandleBookOpen;
+            uiBridge.OnCoverUrlsChanged    -= HandleCoverUrls;
         }
     }
 
@@ -80,6 +84,7 @@ public class WebGLBridge : MonoBehaviour
     void HandleCoverLoading(bool loading)  => JS_NotifyCoverLoading(loading);
     void HandleSubmitCompleted(bool ok)    => JS_NotifySubmitResult(ok);
     void HandleBookOpen(string json)       => JS_NotifyBookOpen(json);
+    void HandleCoverUrls(string urlsJson)  => JS_NotifyCoverUrls(urlsJson ?? "[]");
 
     // ── Inbound commands (JS → C#, called via SendMessage) ───────────────────
 

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "copy": "node -e \"var d='../build/ui';require('fs').mkdirSync(d,{recursive:true});require('fs').copyFileSync('dist/bundle.js',d+'/bundle.js');require('fs').copyFileSync('dist/bundle-entry.css',d+'/bundle-entry.css');require('fs').copyFileSync('dist/manifest.json',d+'/manifest.json')\""
+    "copy": "node -e \"var d='../build/ui';require('fs').mkdirSync(d,{recursive:true});require('fs').copyFileSync('dist/bundle.js',d+'/bundle.js');require('fs').copyFileSync('dist/bundle-entry.css',d+'/bundle-entry.css');require('fs').copyFileSync('dist/manifest.json',d+'/manifest.json')\"",
+    "dev:serve": "bun run build && bun run copy && bunx serve ../build/ui"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",

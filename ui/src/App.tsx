@@ -120,6 +120,10 @@ export function App() {
         onSubmitted={() => {}}
         fetchCover={handleFetchCover}
         submitBook={handleSubmitBook}
+        onContributor={(title, author, name) => {
+          const map = contributorMap();
+          if (map) addContributor(map, title, author, name);
+        }}
       />
       <Show when={bookData()}>
         {data => (

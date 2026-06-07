@@ -40,4 +40,11 @@ mergeInto(LibraryManager.library, {
     }
   },
 
+  JS_NotifyCoverUrls: function (urlsPtr) {
+    var json = UTF8ToString(urlsPtr);
+    if (window.unityBridge && window.unityBridge.onCoverUrls) {
+      window.unityBridge.onCoverUrls(json);
+    }
+  },
+
 });

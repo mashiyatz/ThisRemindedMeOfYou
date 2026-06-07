@@ -465,7 +465,7 @@ PlayerSettings:
   m_TemplateCustomTags:
     UNITY_BUILD_NAME: ui
     UNITY_CONFIG: 
-    UNITY_DECOMPRESSION_FALLBACK: 
+    UNITY_DECOMPRESSION_FALLBACK: 1
     UNITY_LOADER_URL: 
   mobileMTRendering:
     Android: 1

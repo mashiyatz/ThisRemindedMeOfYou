@@ -107,15 +107,26 @@
 
   <script>
     var buildName = "{{{ UNITY_BUILD_NAME }}}";
-    var loaderUrl = "Build/" + buildName + ".loader.js";
+    // Use Unity's filename macros so the extension (.unityweb when compressed)
+    // is always correct regardless of compression / decompression-fallback settings.
+    var loaderUrl = "Build/{{{ LOADER_FILENAME }}}";
     var config = {
-      dataUrl:            "Build/" + buildName + ".data{{{ UNITY_DECOMPRESSION_FALLBACK ? '' : '.unityweb' }}}",
-      frameworkUrl:       "Build/" + buildName + ".framework.js{{{ UNITY_DECOMPRESSION_FALLBACK ? '' : '.unityweb' }}}",
-      codeUrl:            "Build/" + buildName + ".wasm{{{ UNITY_DECOMPRESSION_FALLBACK ? '' : '.unityweb' }}}",
+      dataUrl:            "Build/{{{ DATA_FILENAME }}}",
+      frameworkUrl:       "Build/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl:            "Build/{{{ CODE_FILENAME }}}",
+      enableStreamingDownload: true,
       streamingAssetsUrl: "StreamingAssets",
       companyName:        "{{{ COMPANY_NAME }}}",
       productName:        "{{{ PRODUCT_NAME }}}",
       productVersion:     "{{{ PRODUCT_VERSION }}}",
+      // Cache the big files immutably so kiosk reloads serve them from
+      // IndexedDB instead of re-downloading. Overrides Unity's default
+      // "must-revalidate" and survives every rebuild (set here, not in loader.js).
+      cacheControl: function (url) {
+        if (url == config.dataUrl || url == config.codeUrl || url == config.frameworkUrl)
+          return "immutable";
+        return "no-store";
+      },
     };
 
     var loadingBar   = document.getElementById("unity-loading-bar");
@@ -124,14 +135,27 @@
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = function() {
-      createUnityInstance(document.getElementById("unity-canvas"), config, function(progress) {
-        progressFull.style.width = (100 * progress) + "%";
-      }).then(function(unityInstance) {
-        loadingBar.classList.add("hidden");
-        window.__unity = unityInstance;
-      }).catch(function(message) {
-        alert(message);
-      });
+      var maxRetries = 3;
+      var retryDelay = 3000;
+      var canvas = document.getElementById("unity-canvas");
+
+      function attemptLoad(attempt) {
+        createUnityInstance(canvas, config, function(progress) {
+          progressFull.style.width = (100 * progress) + "%";
+        }).then(function(unityInstance) {
+          loadingBar.classList.add("hidden");
+          window.__unity = unityInstance;
+        }).catch(function(message) {
+          console.warn("Unity load attempt " + (attempt + 1) + " failed: " + message);
+          if (attempt + 1 < maxRetries) {
+            setTimeout(function() { attemptLoad(attempt + 1); }, retryDelay);
+          } else {
+            alert("Failed to load after " + maxRetries + " attempts. Check your connection and try refreshing.\n\n" + message);
+          }
+        });
+      }
+
+      attemptLoad(0);
     };
     document.body.appendChild(script);
   </script>

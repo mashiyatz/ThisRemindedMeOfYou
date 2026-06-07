@@ -91,14 +91,28 @@
   border-radius: 2px;
 }
 
+/* ── Bottom bar: flex container for title + leave-book ── */
+
+.hud-bottom {
+  position: fixed;
+  top: calc(100vh - 96px);
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0 32px;
+  pointer-events: none;
+}
+
 /* ── Bottom-left: hovered book title ── */
 
 .hud-book-title {
-  position: fixed;
-  bottom: 28px;
-  left: 32px;
   max-width: 320px;
+  margin-right: auto;
+  padding-top: 12px;
   animation: hudTitleIn 0.35s ease both;
+  pointer-events: auto;
 }
 
 @keyframes hudTitleIn {
@@ -106,38 +120,23 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.hud-book-rule {
-  width: 28px;
-  height: 1px;
-  background: rgba(244, 239, 227, 0.3);
-  margin-bottom: 10px;
-}
-
 .hud-title {
   font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
   font-style: italic;
-  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 2vw, 2.25rem);
   color: rgba(244, 239, 227, 0.88);
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
   letter-spacing: 0.02em;
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
 }
 
 /* ── Bottom-right: leave a book button ── */
 
 .leave-book-btn {
-  position: fixed;
-  bottom: 28px;
-  right: 32px;
   pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(32, 28, 21, 0.5);
-  backdrop-filter: blur(4px);
+  background: none;
   border: none;
-  border-radius: 8px;
   color: rgba(244, 239, 227, 0.88);
   font-family: 'IM Fell English', 'Noto Serif KR', Georgia, serif;
   font-style: italic;
@@ -147,7 +146,7 @@
   padding: 12px 20px;
   cursor: pointer;
   transition: color 0.25s, background 0.25s;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.7);
 }
 
 .leave-book-btn:focus-visible {
@@ -165,6 +164,7 @@
   opacity: 0.55;
   transition: transform 0.2s ease, opacity 0.2s ease;
   display: inline-block;
+  margin-left: 10px;
 }
 
 .leave-book-btn:hover .leave-book-arrow {
@@ -184,9 +184,12 @@
     font-size: 0.85rem;
   }
 
+  .hud-bottom {
+    top: calc(100vh - 84px);
+    padding: 0 20px;
+  }
+
   .hud-book-title {
-    bottom: 16px;
-    left: 20px;
     max-width: calc(100vw - 160px);
   }
 
@@ -200,9 +203,10 @@
   }
 
   .leave-book-btn {
-    bottom: 16px;
-    right: 20px;
     font-size: 1rem;
-    gap: 7px;
+  }
+
+  .leave-book-btn .leave-book-arrow {
+    margin-left: 7px;
   }
 }

@@ -36,6 +36,29 @@ All run from the project's own directory, not from repo root.
 ### `archived/`
 - Deprecated experiments (`web/`, `babylon/`) and V1 scripts — not actively maintained. Refer to original `README.md` in each subdirectory for build instructions.
 
+## WebGL build & deploy notes (hard-won)
+
+### Deployment target: Lume Pad 2 tablets (Leia), **use Firefox**
+- The kiosk tablets are **Leia Lume Pad 2** (Android 12, Snapdragon 888). They have a glasses-free 3D lightfield display, but **we do not use the 3D features** — the experience runs in plain 2D.
+- **Use Firefox on the tablets, not Chrome.** Chrome on the Lume Pad 2 routes WebGL through Leia's "Web Helper" lightfield pipeline, which adds rendering/memory overhead and causes load failures. Firefox runs outside that pipeline (plain 2D) and is reliable.
+
+### The custom WebGL template controls `build/ui/index.html`
+- `CornellBox/Assets/WebGLTemplates/SolidJSHost/index.html` is the **source** of the deployed `build/ui/index.html`. Edit the template, not the generated file — Unity regenerates the output on every build.
+- **Always reference build files via Unity's filename macros**, never hand-built strings:
+  `{{{ LOADER_FILENAME }}}`, `{{{ DATA_FILENAME }}}`, `{{{ FRAMEWORK_FILENAME }}}`, `{{{ CODE_FILENAME }}}`.
+  These resolve to the correct name **including the `.unityweb` extension**. Brotli-compressed builds keep `.unityweb` **even with Decompression Fallback ON** — a previous hand-built ternary (`UNITY_DECOMPRESSION_FALLBACK ? '' : '.unityweb'`) wrongly dropped the extension, causing 404s on `Build/ui.data` etc. The 404 returns the HTML page, which parses as JS → **`SyntaxError: Unexpected token '<'`**. If you see that error, check the config URLs against the actual filenames first.
+
+### Caching: set `cacheControl` in the template config (survives rebuilds)
+- The loader merges the template's `config` over its defaults, so define `cacheControl` in the template (already done) — do **not** patch the generated `loader.js` (Unity overwrites it every build).
+- We return `"immutable"` for `dataUrl`/`codeUrl`/`frameworkUrl` so kiosk reloads serve the big files from IndexedDB instead of re-downloading. Caveat: files are **not** content-hashed (`webGLNameFilesAsHashes: 0`), so after shipping a new build, clear cache / hard-refresh to bust stale immutable caches.
+- `_headers` (Cloudflare Pages) intentionally sets **no** `Content-Encoding` on `.unityweb` — Decompression Fallback is ON, so the loader decompresses Brotli in JS. Do not add `Content-Encoding: gzip/br` unless you also disable the fallback.
+
+### Build size: only the USED set matters
+- The WebGL build includes **only** assets reachable from the build scene (`Scenes/V2.unity`) plus everything force-included under `Resources/` and `StreamingAssets/`. Deleting **unused** project assets does **not** shrink the build (it only saves disk/import time).
+- To reduce build size, optimize **used** assets, or trim `Resources/` (which force-includes everything regardless of references).
+- Texture import settings live in `.meta` files. The heavy environment-texture folders (`ReadingRoom`, `TextureHaven`, `Gwangju_3D asset`, `FurnitureAssets`) are **gitignored**, so `.meta` changes there are **not git-reversible** — back up before bulk edits.
+- Current used textures were batch-optimized to **crunch compression + 1024 max** (was 2048, crunch off). To audit used-vs-unused or re-tune textures, write a throwaway Editor script using `AssetDatabase.GetDependencies(EditorBuildSettings.scenes, true)` for the used set, then `TextureImporter` (`crunchedCompression`, `maxTextureSize`) over the result. (Two such tools were used this session and then removed to keep the repo clean.)
+
 ## Unity architecture (`CornellBox/`)
 
 The active codebase uses the **V2** scripts in `CornellBox/Assets/Scripts/V2/`. V1 scripts (`PlayerController.cs`, `ClickInteraction.cs`, `BookDisplay.cs`, `ScrollThroughBooks.cs`) are still present at `CornellBox/Assets/Scripts/` but deprecated.
@@ -93,7 +116,8 @@ window.unityBridge    ←───  JS_Notify*() jslib calls
 CornellBox/Assets/
   Scripts/              # V1 scripts (deprecated)
   Scripts/V2/           # Active C# MonoBehaviours
-  Scenes/Scene.unity
+  Scenes/V2.unity       # The ACTIVE build scene (the enabled scene in Build Settings)
+  WebGLTemplates/SolidJSHost/  # Custom WebGL template — source of build/ui/index.html
   Audio/
     Voice/              # Per-book voice recordings (.mp3)
     SFX/                # beep, bgm, pageFlip, swoosh
@@ -145,7 +169,7 @@ See `ui/AGENTS.md` for full guidance. Summary:
 - **Unity bridge**: `ui/src/bridge/UnityBridge.ts` — `SendMessage` to Unity + `window.unityBridge` callbacks
 - **State machine** (mirrors Unity C#): `BROWSING → IN → READING → OUT → SUBMITTING` in `ui/src/state/SceneState.ts`
 - **Supabase**: `@supabase/supabase-js` client, schema `reminded_me`, table `books`. Room from `?room=` (default: `default`)
-- **Submission flow**: SolidJS `SubmissionPanel` → Supabase insert → Unity `notifySpawn()`
+- **Submission flow**: SolidJS `SubmissionPanel` → Supabase insert → Unity `notifySpawn()`. Production uses the **SolidJS** form (`onLeaveBook` → `unityBridge.openPanel()` shows the overlay form). Contributor name is **two-phase**: insert with `contributor_name: null`, then `updateContributor()` on the thanks-page close. The in-memory `contributorMap` (a `createResource`, fetched once at load) **must** be updated locally via the `onContributor` callback on name entry — otherwise the name only appears after a full page reload (which never happens at a kiosk).
 - **i18n**: `en`/`ko`/`es` via `src/i18n/translations.json`
 - **Dev mode**: Press `B` to simulate book open (only in Vite dev mode)
 
@@ -173,3 +197,22 @@ See [`TODO.md`](../TODO.md) for the full prioritized list of post-outdoor-instal
 |----------|-------|
 | **P1 — Bug fixes** | Cover carousel, tablet UI autocorrect, black flash, optional author, highlight timeout (15s), UI visibility |
 | **P2 — Goals** | Larger cover + form redesign, distinguish author/contributor, prompt left sidebar, idle flourishes, beyond 8 books rotation |
+
+## Session Log
+
+### Session 2 (May 31)
+- **Left range bump**: `LEFT_RANGE` 44→52 (3-55%) so bubbles spread wider across the sidebar
+- **Bubble bobbing**: `@keyframes bob` (3.5s, 5px translateY), staggered via `--bob-delay` per bubble
+- **Prompt expansion**: Grew `writing_prompts.json` from 16→31 prompts per language, then culled 8 weaker ones → 23 per language. Thematic focus: connection through stories, unsayable feelings, books as objects that carry meaning
+- **5 bubbles**: `NUM_BUBBLES` 4→5
+- **Sticky bubbles**: Clicking a prompt bubble now pins it — `stickyIdx` signal guards the cycle interval and replacement timer so content/position stay frozen. `sticky` CSS class: brighter, bobbing paused, soft glow. Ends when another bubble is clicked or panel closes. No longer fills response textarea (placeholder stays intact).
+- **Files changed**: `PromptSidebar.tsx`, `PromptSidebar.css`, `SubmissionPanel.tsx`, `writing_prompts.json`
+
+### Session 3 (Jun 6) — WebGL load reliability + build size
+- **Tablet/browser**: identified kiosks as **Leia Lume Pad 2**; standardized on **Firefox** (Chrome routes WebGL through Leia's lightfield Web Helper → load failures). 3D features unused. See "WebGL build & deploy notes".
+- **`Unexpected token '<'` fixed**: the WebGL template hand-built file URLs with a faulty `UNITY_DECOMPRESSION_FALLBACK ? '' : '.unityweb'` ternary that dropped `.unityweb`, 404ing `Build/ui.data` etc. (the HTML fallback parsed as JS). Replaced with Unity filename macros (`{{{ DATA_FILENAME }}}`, …) in `WebGLTemplates/SolidJSHost/index.html`. Also patched the deployed `build/ui/index.html` for the current build.
+- **Data file 222 MB → 90.6 MB**: a dependency audit showed the build's bloat was ~141 **used** textures at 2048px, crunch off (the 24 ReadingRoom `*_Specular.tga` first targeted were **unused** — not in the build). Batch-optimized 86 used textures to crunch + 1024 cap via throwaway Editor scripts (since removed). Build scene is `Scenes/V2.unity`.
+- **Resources font trim**: deleted 16 unreferenced TMP SDF assets from `Resources/Fonts/` (8 Lora weights + 8 Noto weights, ~4.5 MB force-included). Kept the 5 referenced: Lora-Regular/Italic, IMFellEnglish-Regular/Italic, NotoSerifKR-Regular.
+- **Caching**: added `cacheControl: "immutable"` for data/code/framework to the template config (survives rebuilds); kiosk reloads serve from IndexedDB.
+- **Name-not-showing bug fixed**: `updateContributor` wrote to DB but the in-memory `contributorMap` was never updated → name only appeared after reload. Added `onContributor` callback (`SubmissionPanel.tsx` → `App.tsx`) to update the local map immediately.
+- **Files changed**: `WebGLTemplates/SolidJSHost/index.html`, `build/ui/index.html`, `ui/src/ui/SubmissionPanel.tsx`, `ui/src/App.tsx`, 86 texture `.meta` files (gitignored folders), deleted 16 `Resources/Fonts/*SDF.asset`.

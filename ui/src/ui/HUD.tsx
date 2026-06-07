@@ -95,19 +95,18 @@ export function HUD(props: HUDProps) {
         </button>
       </Show>
 
-      {/* Bottom-left: hovered book title */}
-      <Show when={hoverTitle()}>
-        <div class="hud-book-title">
-          <div class="hud-book-rule" />
-          <p class="hud-title">{hoverTitle()}</p>
-        </div>
-      </Show>
-
-      {/* Bottom-right: leave a book — cycles through phrases */}
-      <button class="leave-book-btn" onClick={props.onLeaveBook}>
-        {HUD_LABELS[props.lang()][labelIndex()]}
-        <span class="leave-book-arrow" aria-hidden="true">→</span>
-      </button>
+      {/* Bottom bar: title left, leave-book right */}
+      <div class="hud-bottom">
+        <Show when={hoverTitle()}>
+          <div class="hud-book-title">
+            <p class="hud-title">{hoverTitle()}</p>
+          </div>
+        </Show>
+        <button class="leave-book-btn" onClick={props.onLeaveBook}>
+          {HUD_LABELS[props.lang()][labelIndex()]}
+          <span class="leave-book-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
 
     </div>
   );

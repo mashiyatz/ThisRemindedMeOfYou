@@ -34,6 +34,8 @@ public class V2UIBridge : MonoBehaviour
     public event Action<string> OnSubmitErrorChanged;
     // true = success, false = failure — fired once per SubmitBook call when the request completes
     public event Action<bool>   OnSubmitCompleted;
+    // JSON array of cover URLs for carousel display
+    public event Action<string> OnCoverUrlsChanged;
     // JSON payload fired when a book is interacted with
     public event Action<string> OnBookOpenData;
 
@@ -66,6 +68,7 @@ public class V2UIBridge : MonoBehaviour
         {
             coverService.OnCoverFetched += HandleCoverFetched;
             coverService.OnBusyChanged  += HandleCoverBusy;
+            coverService.OnCoverUrls    += HandleCoverUrls;
         }
     }
 
@@ -77,6 +80,7 @@ public class V2UIBridge : MonoBehaviour
         {
             coverService.OnCoverFetched -= HandleCoverFetched;
             coverService.OnBusyChanged  -= HandleCoverBusy;
+            coverService.OnCoverUrls    -= HandleCoverUrls;
         }
     }
 
@@ -194,6 +198,11 @@ public class V2UIBridge : MonoBehaviour
             // Title isn't known here — TSX will call SubmitBook with the right title later.
             // Fallback generation happens in SubmitBook when cover is still null.
         }
+    }
+
+    private void HandleCoverUrls(string urlsJson)
+    {
+        OnCoverUrlsChanged?.Invoke(urlsJson);
     }
 
     // ── Book highlight + interact ─────────────────────────────────────────────

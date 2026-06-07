@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -10,7 +11,7 @@ using UnityEngine.Networking;
 //
 // Fetch strategy (tried in order):
 //   1. In-memory ISBN cache (per title+author key)
-//   2. OpenLibrary search (title+author → ISBN → covers.openlibrary.org)
+//   2. OpenLibrary search (title+author → ISBNs/cover_i → covers.openlibrary.org)
 //   3. Google Books API fallback (requires apiKey set in Inspector)
 //   4. If all fail → OnCoverFetched(null) → caller generates solid-color cover
 //
@@ -26,19 +27,23 @@ public class BookCoverService : MonoBehaviour
     private const string OlCoverBase   = "https://covers.openlibrary.org/b/isbn";
     private const string OlCoverIdBase = "https://covers.openlibrary.org/b/id";
     private const string GbSearchApi   = "https://www.googleapis.com/books/v1/volumes";
+    private const int    MaxCovers     = 5;
 
     public string LastFetchedUrl { get; private set; }
 
+    // First successful texture (for Unity spawning)
     public event Action<Texture2D> OnCoverFetched;
+    // JSON array of ALL successful cover URLs ["url1","url2",...]
+    public event Action<string>    OnCoverUrls;
     public event Action<string>    OnStatusChanged;
     public event Action<bool>      OnBusyChanged;
 
-    // In-memory cache: normalized "title|author" → first ISBN
-    private static readonly Dictionary<string, string> _isbnCache = new();
+    // In-memory cache: normalized "title|author" → list of ISBNs
+    private static readonly Dictionary<string, List<string>> _isbnCache = new();
 
     public void FetchCover(string title, string author)
     {
-        if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(author)) return;
+        if (string.IsNullOrEmpty(title)) return;
         StartCoroutine(FetchCoroutine(title, author));
     }
 
@@ -47,78 +52,99 @@ public class BookCoverService : MonoBehaviour
         OnBusyChanged?.Invoke(true);
         OnStatusChanged?.Invoke("…");
 
-        // ── Step 1: OpenLibrary search (title+author → ISBN/cover_i) ──
-        string isbn    = GetCachedIsbn(title, author);
-        string coverId = null;
-        if (isbn == null)
-        {
-            yield return StartCoroutine(SearchIsbn(title, author, v => isbn = v, v => coverId = v));
+        // Collect all candidate URLs (ISBN covers + cover_i covers + Google Books)
+        List<string> allUrls = new();
+        Texture2D    firstTexture = null;
 
-            // ── Step 1 retry: title-only, if combined search found nothing ──
-            if (string.IsNullOrEmpty(isbn) && string.IsNullOrEmpty(coverId))
+        // ── Step 1: OpenLibrary search ──
+        List<string> isbns    = GetCachedIsbns(title, author);
+        List<string> coverIds = null;
+
+        if (isbns == null)
+        {
+            yield return StartCoroutine(SearchOpenLibrary(title, author,
+                v => isbns = v, v => coverIds = v));
+
+            if ((isbns == null || isbns.Count == 0) && (coverIds == null || coverIds.Count == 0))
             {
-                Debug.Log($"[BookCoverService] Title+author search found nothing, retrying with title-only for \"{title}\"");
-                yield return StartCoroutine(SearchIsbn(title, null, v => isbn = v, v => coverId = v));
+                Debug.Log($"[BookCoverService] Title+author search found nothing, retrying title-only for \"{title}\"");
+                yield return StartCoroutine(SearchOpenLibrary(title, null,
+                    v => isbns = v, v => coverIds = v));
             }
         }
 
-        bool gotCover = false;
-
-        // ── Step 1a: OpenLibrary ISBN cover ──
-        if (!string.IsNullOrEmpty(isbn))
+        // ── Step 2: Try ISBN covers ──
+        if (isbns != null)
         {
-            string coverUrl = $"{OlCoverBase}/{isbn}-L.jpg";
-            LastFetchedUrl = coverUrl;
-            OnStatusChanged?.Invoke("Downloading cover…");
-
-            using (UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(coverUrl, nonReadable: false))
+            foreach (string isbn in isbns)
             {
-                yield return imgReq.SendWebRequest();
-                if (imgReq.result == UnityWebRequest.Result.Success)
-                {
-                    gotCover = true;
-                    OnStatusChanged?.Invoke(string.Empty);
-                    OnCoverFetched?.Invoke(DownloadHandlerTexture.GetContent(imgReq));
-                }
-                else
-                {
-                    Debug.LogWarning($"[BookCoverService] OpenLibrary ISBN cover failed for {isbn}: {imgReq.error}");
-                }
-            }
-        }
+                if (allUrls.Count >= MaxCovers) break;
+                string coverUrl = $"{OlCoverBase}/{isbn}-L.jpg";
+                OnStatusChanged?.Invoke("Downloading cover…");
 
-        // ── Step 1b: OpenLibrary cover-i fallback (tried even when no ISBN) ──
-        if (!gotCover && !string.IsNullOrEmpty(coverId))
-        {
-            string idCoverUrl = $"{OlCoverIdBase}/{coverId}-L.jpg";
-            LastFetchedUrl = idCoverUrl;
-            OnStatusChanged?.Invoke("Downloading cover…");
-
-            using (UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(idCoverUrl, nonReadable: false))
-            {
-                yield return imgReq.SendWebRequest();
-                if (imgReq.result == UnityWebRequest.Result.Success)
+                using (UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(coverUrl, nonReadable: false))
                 {
-                    gotCover = true;
-                    OnStatusChanged?.Invoke(string.Empty);
-                    OnCoverFetched?.Invoke(DownloadHandlerTexture.GetContent(imgReq));
-                }
-                else
-                {
-                    Debug.LogWarning($"[BookCoverService] OpenLibrary cover_i={coverId} failed: {imgReq.error}");
+                    yield return imgReq.SendWebRequest();
+                    if (imgReq.result == UnityWebRequest.Result.Success)
+                    {
+                        if (firstTexture == null)
+                        {
+                            firstTexture = DownloadHandlerTexture.GetContent(imgReq);
+                            LastFetchedUrl = coverUrl;
+                            OnCoverFetched?.Invoke(firstTexture);
+                        }
+                        allUrls.Add(coverUrl);
+                    }
+                    else
+                    {
+                        Debug.Log($"[BookCoverService] ISBN {isbn} failed: {imgReq.error}");
+                    }
                 }
             }
         }
 
-        // ── Step 2: Google Books fallback ──
-        string gbCoverUrl = null;
-        if (!gotCover)
+        // ── Step 3: Try cover_i fallbacks ──
+        if (coverIds != null)
         {
+            foreach (string cid in coverIds)
+            {
+                if (allUrls.Count >= MaxCovers) break;
+                string coverUrl = $"{OlCoverIdBase}/{cid}-L.jpg";
+
+                // Skip if already in list (same cover via ISBN route)
+                if (allUrls.Contains(coverUrl)) continue;
+
+                OnStatusChanged?.Invoke("Downloading cover…");
+
+                using (UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(coverUrl, nonReadable: false))
+                {
+                    yield return imgReq.SendWebRequest();
+                    if (imgReq.result == UnityWebRequest.Result.Success)
+                    {
+                        if (firstTexture == null)
+                        {
+                            firstTexture = DownloadHandlerTexture.GetContent(imgReq);
+                            LastFetchedUrl = coverUrl;
+                            OnCoverFetched?.Invoke(firstTexture);
+                        }
+                        allUrls.Add(coverUrl);
+                    }
+                    else
+                    {
+                        Debug.Log($"[BookCoverService] cover_i={cid} failed: {imgReq.error}");
+                    }
+                }
+            }
+        }
+
+        // ── Step 4: Google Books fallback (only if no covers found yet) ──
+        if (firstTexture == null)
+        {
+            string gbCoverUrl = null;
             yield return StartCoroutine(SearchGoogleBooks(title, author, v => gbCoverUrl = v));
 
             if (!string.IsNullOrEmpty(gbCoverUrl))
             {
-                LastFetchedUrl = gbCoverUrl;
                 OnStatusChanged?.Invoke("Downloading cover…");
 
                 using (UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(gbCoverUrl, nonReadable: false))
@@ -126,9 +152,10 @@ public class BookCoverService : MonoBehaviour
                     yield return imgReq.SendWebRequest();
                     if (imgReq.result == UnityWebRequest.Result.Success)
                     {
-                        gotCover = true;
-                        OnStatusChanged?.Invoke(string.Empty);
-                        OnCoverFetched?.Invoke(DownloadHandlerTexture.GetContent(imgReq));
+                        firstTexture = DownloadHandlerTexture.GetContent(imgReq);
+                        LastFetchedUrl = gbCoverUrl;
+                        OnCoverFetched?.Invoke(firstTexture);
+                        allUrls.Add(gbCoverUrl);
                     }
                     else
                     {
@@ -138,24 +165,41 @@ public class BookCoverService : MonoBehaviour
             }
         }
 
-        // ── Step 3: Nothing worked — caller generates solid-color ──
-        if (!gotCover)
+        // ── Step 5: Nothing worked — signal fallback ──
+        if (firstTexture == null)
         {
             OnStatusChanged?.Invoke(string.Empty);
             OnCoverFetched?.Invoke(null);
         }
 
+        // Fire URLs event regardless (may be empty — JS generates fallback)
+        string urlsJson = BuildUrlsJson(allUrls);
+        OnCoverUrls?.Invoke(urlsJson);
+
+        OnStatusChanged?.Invoke(string.Empty);
         OnBusyChanged?.Invoke(false);
+    }
+
+    private static string BuildUrlsJson(List<string> urls)
+    {
+        var sb = new StringBuilder("[");
+        for (int i = 0; i < urls.Count; i++)
+        {
+            if (i > 0) sb.Append(",");
+            sb.Append("\"").Append(urls[i]).Append("\"");
+        }
+        sb.Append("]");
+        return sb.ToString();
     }
 
     // ── OpenLibrary search ─────────────────────────────────────────────────
 
-    private IEnumerator SearchIsbn(string title, string author, Action<string> onIsbn, Action<string> onCoverId)
+    private IEnumerator SearchOpenLibrary(string title, string author,
+        Action<List<string>> onIsbns, Action<List<string>> onCoverIds)
     {
         string query = string.IsNullOrEmpty(author)
-            ? $"{OlSearchApi}?q={Uri.EscapeDataString(title)}&limit=1&fields=isbn,cover_i"
-            : $"{OlSearchApi}?q={Uri.EscapeDataString(title)}+{Uri.EscapeDataString(author)}&limit=1&fields=isbn,cover_i";
-        string json = null;
+            ? $"{OlSearchApi}?q={Uri.EscapeDataString(title)}&limit={MaxCovers}&fields=isbn,cover_i"
+            : $"{OlSearchApi}?q={Uri.EscapeDataString(title)}+{Uri.EscapeDataString(author)}&limit={MaxCovers}&fields=isbn,cover_i";
 
         using (UnityWebRequest req = UnityWebRequest.Get(query))
         {
@@ -164,42 +208,86 @@ public class BookCoverService : MonoBehaviour
             if (req.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogWarning($"[BookCoverService] OpenLibrary search failed: {req.error}");
-                onIsbn(null);
-                onCoverId(null);
+                onIsbns(null);
+                onCoverIds(null);
                 yield break;
             }
 
-            json = req.downloadHandler.text;
-        }
+            string json = req.downloadHandler.text;
+            ParseAllCovers(json, out List<string> isbns, out List<string> coverIds);
 
-        string isbn = ParseFirstIsbn(json);
-        if (!string.IsNullOrEmpty(isbn))
+            if (isbns != null && isbns.Count > 0)
+            {
+                CacheIsbns(title, author, isbns);
+                Debug.Log($"[BookCoverService] Found {isbns.Count} ISBN(s) for \"{title}\" by {author}");
+            }
+
+            onIsbns(isbns);
+            onCoverIds(coverIds);
+        }
+    }
+
+    private static void ParseAllCovers(string json, out List<string> isbns, out List<string> coverIds)
+    {
+        isbns    = new List<string>();
+        coverIds = new List<string>();
+
+        // Walk the JSON for each "isbn":[...] and "cover_i":... in docs[]
+        const string docKey = "\"isbn\":[";
+        int pos = 0;
+
+        while (pos < json.Length)
         {
-            Debug.Log($"[BookCoverService] Found ISBN {isbn} for \"{title}\" by {author}");
-            CacheIsbn(title, author, isbn);
+            int docStart = json.IndexOf(docKey, pos, StringComparison.Ordinal);
+            if (docStart < 0) break;
+
+            docStart += docKey.Length;
+            int docEnd = json.IndexOf(']', docStart);
+            if (docEnd < 0) break;
+
+            string isbnSection = json.Substring(docStart, docEnd - docStart);
+            if (!string.IsNullOrEmpty(isbnSection))
+            {
+                // Parse comma-separated quoted strings: "123","456"
+                int ip = 0;
+                while (ip < isbnSection.Length)
+                {
+                    int qs = isbnSection.IndexOf('"', ip);
+                    if (qs < 0) break;
+                    int qe = isbnSection.IndexOf('"', qs + 1);
+                    if (qe < 0) break;
+                    string isbn = isbnSection.Substring(qs + 1, qe - qs - 1);
+                    if (!string.IsNullOrEmpty(isbn) && !isbns.Contains(isbn))
+                        isbns.Add(isbn);
+                    ip = qe + 1;
+                }
+            }
+
+            pos = docEnd + 1;
         }
-        onIsbn(isbn);
-        onCoverId(ParseFirstCoverId(json));
-    }
 
-    private static string ParseFirstCoverId(string json)
-    {
-        const string key = "\"cover_i\":";
-        int start = json.IndexOf(key, StringComparison.Ordinal);
-        if (start < 0) return null;
-        start += key.Length;
-        int end = json.IndexOfAny(new[] { ',', '}' }, start);
-        return end < 0 ? null : json.Substring(start, end - start).Trim();
-    }
+        // Parse cover_i values — look for "cover_i":NUMBER after each doc
+        pos = 0;
+        const string ciKey = "\"cover_i\":";
 
-    private static string ParseFirstIsbn(string json)
-    {
-        const string key = "\"isbn\":[\"";
-        int start = json.IndexOf(key, StringComparison.Ordinal);
-        if (start < 0) return null;
-        start += key.Length;
-        int end = json.IndexOf('"', start);
-        return end < 0 ? null : json.Substring(start, end - start);
+        while (pos < json.Length)
+        {
+            int ciStart = json.IndexOf("{\"isbn\"", pos, StringComparison.Ordinal);
+            if (ciStart < 0) ciStart = pos;
+
+            int ciFind = json.IndexOf(ciKey, ciStart, StringComparison.Ordinal);
+            if (ciFind < 0) break;
+
+            ciFind += ciKey.Length;
+            int ciEnd = json.IndexOfAny(new[] { ',', '}' }, ciFind);
+            if (ciEnd < 0) break;
+
+            string cid = json.Substring(ciFind, ciEnd - ciFind).Trim();
+            if (!string.IsNullOrEmpty(cid) && cid != "0" && !coverIds.Contains(cid))
+                coverIds.Add(cid);
+
+            pos = ciEnd + 1;
+        }
     }
 
     // ── Google Books search ────────────────────────────────────────────────
@@ -229,7 +317,6 @@ public class BookCoverService : MonoBehaviour
             string coverUrl = ParseGoogleBooksCoverUrl(req.downloadHandler.text);
             if (!string.IsNullOrEmpty(coverUrl))
             {
-                // Google Books returns http:// — upgrade to https://
                 if (coverUrl.StartsWith("http://"))
                     coverUrl = "https://" + coverUrl.Substring(7);
 
@@ -246,7 +333,6 @@ public class BookCoverService : MonoBehaviour
 
     private static string ParseGoogleBooksCoverUrl(string json)
     {
-        // Walk the JSON for items[0].volumeInfo.imageLinks.thumbnail
         const string key = "\"thumbnail\":\"";
         int start = json.IndexOf(key, StringComparison.Ordinal);
         if (start < 0) return null;
@@ -261,9 +347,9 @@ public class BookCoverService : MonoBehaviour
     private static string BuildCacheKey(string title, string author) =>
         $"{title?.Trim().ToLowerInvariant()}|{author?.Trim().ToLowerInvariant()}";
 
-    private static string GetCachedIsbn(string title, string author) =>
-        _isbnCache.TryGetValue(BuildCacheKey(title, author), out string isbn) ? isbn : null;
+    private static List<string> GetCachedIsbns(string title, string author) =>
+        _isbnCache.TryGetValue(BuildCacheKey(title, author), out List<string> isbns) ? isbns : null;
 
-    private static void CacheIsbn(string title, string author, string isbn) =>
-        _isbnCache[BuildCacheKey(title, author)] = isbn;
+    private static void CacheIsbns(string title, string author, List<string> isbns) =>
+        _isbnCache[BuildCacheKey(title, author)] = isbns;
 }
