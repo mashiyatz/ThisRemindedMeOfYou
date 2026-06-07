@@ -12,22 +12,29 @@ using UnityEngine.Networking;
 // Fetch strategy (tried in order):
 //   1. In-memory ISBN cache (per title+author key)
 //   2. OpenLibrary search (title+author → ISBNs/cover_i → covers.openlibrary.org)
-//   3. Google Books API fallback (requires apiKey set in Inspector)
+//   3. Google Books API fallback (requires apiKey set in Inspector or
+//      StreamingAssets/google_books_key.txt)
 //   4. If all fail → OnCoverFetched(null) → caller generates solid-color cover
 //
 // Google Books API key: set `googleBooksApiKey` in the Unity Inspector
-// on the GameObject that hosts this component. Get one from
+// on the GameObject that hosts this component, or drop the key (plain text)
+// into StreamingAssets/google_books_key.txt (gitignored). Get one at
 // https://console.cloud.google.com/apis/credentials (enable Books API).
 public class BookCoverService : MonoBehaviour
 {
-    [Tooltip("Google Books API key. Get one at https://console.cloud.google.com/apis/credentials")]
+    [Tooltip("Google Books API key. Get one at https://console.cloud.google.com/apis/credentials." +
+             " Falls back to StreamingAssets/google_books_key.txt if left empty.")]
     [SerializeField] private string googleBooksApiKey;
 
-    private const string OlSearchApi   = "https://openlibrary.org/search.json";
-    private const string OlCoverBase   = "https://covers.openlibrary.org/b/isbn";
-    private const string OlCoverIdBase = "https://covers.openlibrary.org/b/id";
-    private const string GbSearchApi   = "https://www.googleapis.com/books/v1/volumes";
-    private const int    MaxCovers     = 5;
+    private const string OlSearchApi        = "https://openlibrary.org/search.json";
+    private const string OlCoverBase        = "https://covers.openlibrary.org/b/isbn";
+    private const string OlCoverIdBase      = "https://covers.openlibrary.org/b/id";
+    private const string GbSearchApi        = "https://www.googleapis.com/books/v1/volumes";
+    private const int    MaxCovers          = 5;
+    private const string KeyFileName        = "google_books_key.txt";
+
+    private static string _fileApiKey;
+    private static bool   _fileApiKeyLoaded;
 
     public string LastFetchedUrl { get; private set; }
 
@@ -290,18 +297,45 @@ public class BookCoverService : MonoBehaviour
         }
     }
 
+    // ── Google Books API key loading (StreamingAssets fallback) ──────────
+
+    private IEnumerator EnsureApiKeyLoaded()
+    {
+        if (_fileApiKeyLoaded) yield break;
+        _fileApiKeyLoaded = true;
+
+        string path = System.IO.Path.Combine(Application.streamingAssetsPath, KeyFileName);
+        string uri  = new System.Uri(path).AbsoluteUri;
+
+        using (UnityWebRequest req = UnityWebRequest.Get(uri))
+        {
+            yield return req.SendWebRequest();
+            if (req.result == UnityWebRequest.Result.Success)
+            {
+                _fileApiKey = req.downloadHandler.text.Trim();
+            }
+        }
+    }
+
     // ── Google Books search ────────────────────────────────────────────────
 
     private IEnumerator SearchGoogleBooks(string title, string author, Action<string> onCoverUrl)
     {
-        if (string.IsNullOrEmpty(googleBooksApiKey))
+        string key = googleBooksApiKey;
+        if (string.IsNullOrEmpty(key))
         {
-            Debug.Log("[BookCoverService] googleBooksApiKey not set — skipping Google Books fallback.");
+            yield return EnsureApiKeyLoaded();
+            key = _fileApiKey;
+        }
+
+        if (string.IsNullOrEmpty(key))
+        {
+            Debug.Log("[BookCoverService] No Google Books API key available — skipping Google Books fallback.");
             onCoverUrl(null);
             yield break;
         }
 
-        string query = $"{GbSearchApi}?q=intitle:{Uri.EscapeDataString(title)}+inauthor:{Uri.EscapeDataString(author)}&key={googleBooksApiKey}";
+        string query = $"{GbSearchApi}?q=intitle:{Uri.EscapeDataString(title)}+inauthor:{Uri.EscapeDataString(author)}&key={key}";
 
         using (UnityWebRequest req = UnityWebRequest.Get(query))
         {

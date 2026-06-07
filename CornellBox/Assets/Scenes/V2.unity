@@ -5240,7 +5240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d651e8969b82cd459910aa91c658b55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  googleBooksApiKey: AIzaSyB3Pd5EU3g5FyyFx5jMvTne0nE5pjrqv6E
+  googleBooksApiKey: 
 --- !u!4 &1129532862
 Transform:
   m_ObjectHideFlags: 0

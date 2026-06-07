@@ -49,5 +49,8 @@ CornellBox/Assets/URPDefaultResources/
 # Archived experimental directories
 archived/
 
+# Google Books API key — each deploy must provide its own
+CornellBox/Assets/StreamingAssets/google_books_key.txt
+
 # Archived WebGL build output (GitHub Pages) — prevent future build artifacts
 docs/Build/
