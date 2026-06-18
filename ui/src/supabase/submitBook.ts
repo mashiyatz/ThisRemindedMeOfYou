@@ -17,26 +17,9 @@ export async function submitBook(entry: BookEntry): Promise<boolean> {
       response_text:    entry.responseText,
       is_handwritten:   entry.isHandwritten,
       wants_narrated:   entry.wantsNarrated,
-      contributor_name: null,
+      contributor_name: entry.contributorName?.trim() || null,
       submitted_at:     entry.submittedAt,
     });
   if (error) console.error('[submitBook]', error.message);
-  return !error;
-}
-
-export async function updateContributor(
-  title: string,
-  author: string,
-  submittedAt: string,
-  name: string,
-): Promise<boolean> {
-  const { error } = await supabase
-    .schema('reminded_me')
-    .from('books')
-    .update({ contributor_name: name.trim() || null })
-    .eq('title', title)
-    .eq('author', author)
-    .eq('submitted_at', submittedAt);
-  if (error) console.error('[updateContributor]', error.message);
   return !error;
 }

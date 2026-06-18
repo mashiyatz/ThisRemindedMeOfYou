@@ -1,0 +1,19 @@
+/* Reduced-motion / e-ink kill-switch. The class is set on <html> by the WebGL
+   template (production) or motion.ts (dev) from ?motion=off|on, falling back
+   to prefers-reduced-motion. 0.001s rather than 0s so transition/animation
+   event semantics stay intact. */
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  transition-duration: 0.001s !important;
+  transition-delay: 0s !important;
+  animation-duration: 0.001s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* E-ink: soft shadows dither into gray smears on the panel and add paint
+   cost; borders already delineate the surfaces that had them. */
+html.reduced-motion * {
+  box-shadow: none !important;
+}

@@ -327,7 +327,28 @@ public class V2BookLoader : MonoBehaviour
         Renderer   rend = bookGo.GetComponentInChildren<Renderer>();
         MeshFilter mf   = bookGo.GetComponentInChildren<MeshFilter>();
         if (rend != null && mf != null)
-            rend.material.mainTexture = BookCoverTextureComposer.BuildAtlas(cover, mf.sharedMesh);
+        {
+            // The web overlay carousel lets the user pick a cover other than the
+            // first one Unity fetched. Download the selected URL so the in-scene
+            // book matches the DB. `cover` is the pre-fetched/solid fallback used
+            // for data: URIs or if the download fails.
+            Texture2D finalCover = cover;
+            if (!string.IsNullOrEmpty(entry.coverImageUrl) &&
+                entry.coverImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(entry.coverImageUrl))
+                {
+                    yield return req.SendWebRequest();
+                    if (req.result == UnityWebRequest.Result.Success)
+                        finalCover = DownloadHandlerTexture.GetContent(req);
+                    else
+                        Debug.LogWarning($"[V2BookLoader] Selected cover load failed for '{entry.title}': {req.error}");
+                }
+            }
+
+            if (finalCover != null)
+                rend.material.mainTexture = BookCoverTextureComposer.BuildAtlas(finalCover, mf.sharedMesh);
+        }
     }
 
     private void ApplySpawnJitter(Transform t)

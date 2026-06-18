@@ -110,6 +110,7 @@ export const unityBridge = {
         response:      entry.responseText,
         isHandwritten: entry.isHandwritten,
         wantsNarrated: entry.wantsNarrated,
+        coverImageUrl: entry.coverImageUrl,
       }),
     );
   },

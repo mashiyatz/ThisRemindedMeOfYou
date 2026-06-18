@@ -47,4 +47,8 @@ mergeInto(LibraryManager.library, {
     }
   },
 
+  JS_GetReducedMotion: function () {
+    return window.__reducedMotion ? 1 : 0;
+  },
+
 });

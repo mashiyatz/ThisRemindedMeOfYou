@@ -11,6 +11,8 @@ public class SkyboxController : MonoBehaviour
     void Start()
     {
         RenderSettings.skybox = phases[0];
+        // E-ink mode: the per-frame skybox lerp redraws the whole screen — freeze on phase 0
+        if (MotionConfig.Reduced) enabled = false;
     }
 
     void Update()

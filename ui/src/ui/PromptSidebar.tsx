@@ -1,17 +1,17 @@
 import { createSignal, createEffect, For, onCleanup } from 'solid-js';
 import type { Lang } from '../types/ui';
+import { reducedMotion } from '../motion';
 import WRITING_PROMPTS from '../i18n/writing_prompts.json';
+import { CoverPreview } from './CoverPreview';
 import './PromptSidebar.css';
 
-type Step = 'form' | 'confirm' | 'thanks';
-type BubbleSize = 'small' | 'medium' | 'large';
+type CoverState = 'empty' | 'loading' | 'loaded';
 
 interface BubbleState {
   index: number;
   top: number;
   left: number;
   anim: 'idle' | 'out' | 'in';
-  size: BubbleSize;
   bobDelay: number;
 }
 
@@ -22,28 +22,34 @@ interface Pos {
 
 interface PromptSidebarProps {
   open: boolean;
-  step: () => Step;
   lang: () => Lang;
+  coverUrl: () => string;
+  coverState: () => CoverState;
+  coverUrls: () => string[];
+  onFindCover: () => void;
+  onNavigateCover: (dir: number) => void;
 }
 
-const SIZES: BubbleSize[] = ['small', 'medium', 'large'];
 const NUM_BUBBLES = 5;
 const MIN_GAP = 22;
-const TOP_RANGE = 60; // 6-66%
-const LEFT_RANGE = 52; // 3-55%
-
-function randomSize(): BubbleSize {
-  return SIZES[Math.floor(Math.random() * SIZES.length)];
-}
-
-function randomPos(existing: Pos[]): Pos {
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const pos: Pos = { top: 6 + Math.random() * TOP_RANGE, left: 3 + Math.random() * LEFT_RANGE };
+/* Ring-shaped distribution around the centered cover. The cover sits at roughly
+   50%/50% and occupies a central zone; randomRingPos picks positions in a band
+   around it so bubbles appear to orbit the preview rather than overlap it. */
+function randomRingPos(existing: Pos[]): Pos {
+  const cx = 50, cy = 50, minR = 30, maxR = 40;
+  for (let attempt = 0; attempt < 120; attempt++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const dist  = minR + Math.random() * (maxR - minR);
+    const top   = cy + dist * Math.sin(angle);
+    const left  = cx + dist * Math.cos(angle);
+    // Clamp — avoid bubble clipping over the panel (>65% left) or offscreen
+    if (top < 4 || top > 86 || left < 4 || left > 64) continue;
+    const pos: Pos = { top, left };
     if (existing.every(p => Math.hypot(pos.top - p.top, pos.left - p.left) >= MIN_GAP)) {
       return pos;
     }
   }
-  return { top: 6 + Math.random() * TOP_RANGE, left: 3 + Math.random() * LEFT_RANGE };
+  return { top: 20 + Math.random() * 50, left: 10 + Math.random() * 40 };
 }
 
 function randomIndex(existing: number[], promptsLen: number): number {
@@ -62,7 +68,7 @@ export function PromptSidebar(props: PromptSidebarProps) {
   const [stickyIdx, setStickyIdx] = createSignal(-1);
 
   createEffect(() => {
-    if (!props.open || props.step() !== 'form') return;
+    if (!props.open) return;
 
     setStickyIdx(-1);
 
@@ -76,17 +82,21 @@ export function PromptSidebar(props: PromptSidebarProps) {
 
     const positions: Pos[] = [];
     while (positions.length < count) {
-      positions.push(randomPos(positions));
+      positions.push(randomRingPos(positions));
     }
 
     setBubbles(used.map((idx, i) => ({
       index: idx,
       top: positions[i].top,
       left: positions[i].left,
-      anim: 'in',
-      size: randomSize(),
+      anim: reducedMotion ? 'idle' : 'in',
       bobDelay: Math.random() * 3,
     })));
+
+    // E-ink mode: prompts stay static. Every timed content/position swap is a
+    // DOM mutation that forces a panel region refresh right next to the form
+    // while the visitor is typing.
+    if (reducedMotion) return;
 
     const fadeInTimers = used.map((_, i) =>
       setTimeout(() => {
@@ -109,13 +119,12 @@ export function PromptSidebar(props: PromptSidebarProps) {
             if (j !== i) return b;
             const others = prev.filter((_, k) => k !== i);
             const otherIndices = others.map(o => o.index);
-            const newPos = randomPos(others.map(o => ({ top: o.top, left: o.left })));
+            const newPos = randomRingPos(others.map(o => ({ top: o.top, left: o.left })));
             return {
               index: randomIndex(otherIndices, prompts.length),
               top: newPos.top,
               left: newPos.left,
               anim: 'in',
-              size: randomSize(),
               bobDelay: Math.random() * 3,
             };
           }));
@@ -145,11 +154,11 @@ export function PromptSidebar(props: PromptSidebarProps) {
   }
 
   return (
-    <div class="prompt-sidebar" classList={{ visible: props.open && props.step() === 'form', 'is-ko': props.lang() === 'ko' }}>
+    <div class="cover-sidebar" classList={{ visible: props.open, 'is-ko': props.lang() === 'ko' }}>
       <For each={bubbles()}>
         {(bubble, i) => (
           <div
-            class={`prompt-sidebar-bubble size-${bubble.size}`}
+            class="prompt-sidebar-bubble"
             classList={{ 'anim-out': bubble.anim === 'out', 'anim-in': bubble.anim === 'in', sticky: stickyIdx() === i() }}
             style={{ top: `${bubble.top}%`, left: `${bubble.left}%`, '--bob-delay': `${bubble.bobDelay}s` }}
             onClick={() => handleClick(i())}
@@ -160,6 +169,17 @@ export function PromptSidebar(props: PromptSidebarProps) {
           </div>
         )}
       </For>
+
+      <div class="cover-stage">
+        <CoverPreview
+          lang={props.lang}
+          coverUrl={props.coverUrl}
+          coverState={props.coverState}
+          coverUrls={props.coverUrls}
+          onFindCover={props.onFindCover}
+          onNavigateCover={props.onNavigateCover}
+        />
+      </div>
     </div>
   );
 }

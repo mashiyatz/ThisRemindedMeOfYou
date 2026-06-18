@@ -1,12 +1,11 @@
-import { createSignal, Show, Switch, Match } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import type { BookEntry } from '../types/BookData';
 import type { Lang } from '../types/ui';
 import T from '../i18n/translations.json';
-import { updateContributor } from '../supabase/submitBook';
 import { PromptSidebar } from './PromptSidebar';
+import { CoverPreview } from './CoverPreview';
 import './SubmissionPanel.css';
 
-type Step = 'form' | 'confirm' | 'thanks';
 type CoverState = 'empty' | 'loading' | 'loaded';
 
 interface SubmissionPanelProps {
@@ -23,7 +22,6 @@ interface SubmissionPanelProps {
 export function SubmissionPanel(props: SubmissionPanelProps) {
   const lang = props.lang;
   const setLang = props.setLang;
-  const [step, setStep] = createSignal<Step>('form');
   const [title, setTitle] = createSignal('');
   const [author, setAuthor] = createSignal('');
   const [response, setResponse] = createSignal('');
@@ -36,13 +34,27 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
   const [submitting, setSubmitting] = createSignal(false);
   const [coverUrls, setCoverUrls] = createSignal<string[]>([]);
   const [coverIndex, setCoverIndex] = createSignal(0);
-  const [lastSubmitted, setLastSubmitted] = createSignal<{title: string; author: string; submittedAt: string} | null>(null);
-
-  let textareaRef!: HTMLTextAreaElement;
 
   type TranslationKey = keyof typeof T.en;
   const t = (k: TranslationKey): string => T[lang()][k];
   const dateStr = () => new Date().toLocaleDateString(T[lang()].dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Title/author/name are single-line-ish textareas (for wrapping + styling
+  // parity with the response field). Grow their height to fit wrapped content.
+  let titleRef: HTMLTextAreaElement | undefined;
+  let authorRef: HTMLTextAreaElement | undefined;
+  let nameRef: HTMLTextAreaElement | undefined;
+
+  function autoGrow(el: HTMLTextAreaElement) {
+    const cs = getComputedStyle(el);
+    const borderY = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + borderY}px`;
+  }
+
+  // Keep these fields logically single-line: block Enter, strip pasted newlines.
+  const stripNewlines = (s: string) => s.replace(/\r?\n/g, ' ');
+  const blockEnter = (e: KeyboardEvent) => { if (e.key === 'Enter') e.preventDefault(); };
 
   function generateFallbackCover(title: string): string {
     let hash = 0;
@@ -77,32 +89,29 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
     return ok;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
-    if (!response().trim()) {
-      setStep('confirm');
-      return;
-    }
-    doSubmit();
+    await doSubmit();
   }
 
   async function doSubmit() {
     setSubmitting(true);
     const finalCover = coverUrl();
     const submittedAt = new Date().toISOString();
+    const name = contributor().trim();
     const entry: BookEntry = {
       title: title(), author: author(), submittedAt,
       coverImagePath: '', coverImageUrl: finalCover,
       responseText: response(), audioPath: '', audioUrl: '',
       isHandwritten: false, wantsNarrated: false,
-      contributorName: '',
+      contributorName: name,
     };
     const ok = await props.submitBook(entry, finalCover);
     setSubmitting(false);
-    if (!ok) { setErrorSubmit(t('errorSubmit')); setStep('form'); return; }
-    setLastSubmitted({ title: title(), author: author(), submittedAt });
-    setStep('thanks');
+    if (!ok) { setErrorSubmit(t('errorSubmit')); return; }
+    if (name) props.onContributor(title(), author(), name);
     props.onSubmitted(entry, finalCover);
+    close();
   }
 
   function navigateCover(dir: number) {
@@ -113,23 +122,21 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
     setCoverUrl(urls[next]);
   }
 
+  function clearCover() {
+    setCoverUrl('');
+    setCoverState('empty');
+    setCoverUrls(p => p.length ? [] : p);
+    setCoverIndex(0);
+  }
+
   function reset() {
     setTitle(''); setAuthor(''); setResponse(''); setCoverUrl('');
     setCoverState('empty');
     setErrorTitle(''); setErrorSubmit('');
-    setStep('form'); setContributor('');
+    setContributor('');
     setCoverUrls([]); setCoverIndex(0);
-    setLastSubmitted(null);
-  }
-
-  async function handleThanksClose() {
-    const name = contributor().trim();
-    const last = lastSubmitted();
-    if (name && last) {
-      await updateContributor(last.title, last.author, last.submittedAt, name);
-      props.onContributor(last.title, last.author, name);
-    }
-    close();
+    // collapse the auto-grown fields back to a single row
+    [titleRef, authorRef, nameRef].forEach((el) => { if (el) el.style.height = 'auto'; });
   }
 
   function close() {
@@ -139,148 +146,113 @@ export function SubmissionPanel(props: SubmissionPanelProps) {
 
   return (
     <div class="panel-overlay" classList={{ visible: props.open }}>
-      <PromptSidebar open={props.open} step={step} lang={lang} />
+      <PromptSidebar
+        open={props.open}
+        lang={lang}
+        coverUrl={coverUrl}
+        coverState={coverState}
+        coverUrls={coverUrls}
+        onFindCover={findCover}
+        onNavigateCover={navigateCover}
+      />
       <div class="panel" classList={{ 'is-ko': lang() === 'ko' }}>
+        <div class="form-step">
+          <div class="form-header">
+            <div class="form-meta-row">
+              <span class="form-date">{dateStr()}</span>
+              <button class="lang-pill" onClick={() => {
+                const order: Lang[] = ['en', 'ko', 'es'];
+                const next = order[(order.indexOf(lang()) + 1) % order.length];
+                setLang(next);
+              }}>{t('pill')}</button>
+            </div>
+            <h2 class="form-heading">{t('heading')}</h2>
+          </div>
 
-        <Switch>
+          {/* Mobile-only cover control — the sidebar (and its cover) is hidden
+              below 768px, so narrow screens get the preview inside the panel. */}
+          <div class="cover-mobile">
+            <CoverPreview
+              lang={lang}
+              coverUrl={coverUrl}
+              coverState={coverState}
+              coverUrls={coverUrls}
+              onFindCover={findCover}
+              onNavigateCover={navigateCover}
+              frameClass="cover-frame-mobile"
+            />
+          </div>
 
-          {/* ── Step 1: Form ── */}
-          <Match when={step() === 'form'}>
-            <div class="form-step">
-              <div class="form-header">
-                <div class="form-meta-row">
-                  <span class="form-date">{dateStr()}</span>
-                  <button class="lang-pill" onClick={() => {
-                    const order: Lang[] = ['en', 'ko', 'es'];
-                    const next = order[(order.indexOf(lang()) + 1) % order.length];
-                    setLang(next);
-                  }}>{t('pill')}</button>
-                </div>
-                <h2 class="form-heading">{t('heading')}</h2>
-              </div>
-
-              <div class="book-row">
-                <div class="cover-col">
-                  <div class="cover-frame">
-                    <Show when={coverState() === 'empty'}>
-                      <div class="cover-placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
-                             stroke-linecap="round" stroke-linejoin="round">
-                          <rect x="4" y="2" width="16" height="20" rx="1"/>
-                          <line x1="4" y1="6" x2="20" y2="6"/>
-                          <line x1="8" y1="2" x2="8" y2="22"/>
-                        </svg>
-                        <span class="cover-placeholder-label">{t('coverLabel')}</span>
-                      </div>
-                    </Show>
-                    <Show when={coverState() === 'loading'}>
-                      <div class="cover-loader">
-                        <div class="cover-dot" />
-                        <div class="cover-dot" />
-                        <div class="cover-dot" />
-                      </div>
-                    </Show>
-                    <Show when={coverState() === 'loaded'}>
-                      <img src={coverUrl()} alt="book cover" />
-                      <Show when={coverUrls().length > 1}>
-                        <button class="cover-arrow cover-arrow-prev" onClick={() => navigateCover(-1)} aria-label="Previous cover">‹</button>
-                        <button class="cover-arrow cover-arrow-next" onClick={() => navigateCover(1)} aria-label="Next cover">›</button>
-                      </Show>
-                    </Show>
-                  </div>
-                  <button class="find-cover-btn" onClick={findCover} disabled={coverState() === 'loading'}>
-                    {t('findCover')}
-                  </button>
-                </div>
-
-                <div class="details-col">
-                  <div class="field-group">
-                    <label class="field-label" for="sp-title">{t('labelTitle')}</label>
-                    <input
-                      class="field-input" classList={{ 'has-error': !!errorTitle() }}
-                      id="sp-title" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
-                      value={title()}
-                      onInput={(e) => { setTitle(e.currentTarget.value); setErrorTitle(''); setCoverUrl(''); setCoverState('empty'); setCoverUrls([]); setCoverIndex(0); }}
-                      placeholder={t('phTitle')}
-                    />
-                    <Show when={errorTitle()}>
-                      <p class="field-err">{errorTitle()}</p>
-                    </Show>
-                  </div>
-                  <div class="field-group">
-                    <label class="field-label" for="sp-author">{t('labelAuthor')}</label>
-                    <input
-                      class="field-input"
-                      id="sp-author" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
-                      value={author()}
-                      onInput={(e) => { setAuthor(e.currentTarget.value); setCoverUrl(''); setCoverState('empty'); setCoverUrls([]); setCoverIndex(0); }}
-                      placeholder={t('phAuthor')}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="response-section">
-                <span class="response-label">{t('labelResponse')}</span>
-                <textarea
-                  ref={textareaRef!}
-                  class="response-textarea"
-                  autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
-                  value={response()}
-                  onInput={(e) => setResponse(e.currentTarget.value)}
-                  placeholder={t('phResponse')}
-                  rows={8}
-                />
-              </div>
-
-              <Show when={errorSubmit()}>
-                <p class="submit-err">{errorSubmit()}</p>
+          <div class="fields-section">
+            <div class="field-group">
+              <label class="field-label" for="sp-title">{t('labelTitle')}</label>
+              <textarea
+                ref={titleRef}
+                class="field-input" classList={{ 'has-error': !!errorTitle() }}
+                id="sp-title" rows={1} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
+                value={title()}
+                onKeyDown={blockEnter}
+                onInput={(e) => { setTitle(stripNewlines(e.currentTarget.value)); setErrorTitle(''); clearCover(); autoGrow(e.currentTarget); }}
+                placeholder={t('phTitle')}
+              />
+              <Show when={errorTitle()}>
+                <p class="field-err">{errorTitle()}</p>
               </Show>
-
-              <div class="form-actions">
-                <button class="cancel-btn" onClick={close}>{t('cancel')}</button>
-                <button class="submit-btn" onClick={handleSubmit} disabled={submitting()}>
-                  {t('submit')}
-                </button>
-              </div>
             </div>
-          </Match>
-
-          {/* ── Step 2: Empty-response confirm ── */}
-          <Match when={step() === 'confirm'}>
-            <div class="confirm-step">
-              <span class="confirm-ornament">—</span>
-              <p class="confirm-heading">{t('confirmHead')}</p>
-              <p class="confirm-body">{t('confirmBody')}</p>
-              <div class="confirm-actions">
-                <button class="confirm-yes" onClick={doSubmit}>{t('confirmYes')}</button>
-                <button class="confirm-no" onClick={() => setStep('form')}>{t('confirmNo')}</button>
-              </div>
+            <div class="field-group">
+              <label class="field-label" for="sp-author">{t('labelAuthor')}</label>
+              <textarea
+                ref={authorRef}
+                class="field-input"
+                id="sp-author" rows={1} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
+                value={author()}
+                onKeyDown={blockEnter}
+                onInput={(e) => { setAuthor(stripNewlines(e.currentTarget.value)); clearCover(); autoGrow(e.currentTarget); }}
+                placeholder={t('phAuthor')}
+              />
             </div>
-          </Match>
+          </div>
 
-          {/* ── Step 3: Thanks ── */}
-          <Match when={step() === 'thanks'}>
-            <div class="thanks-step">
-              <span class="thanks-ornament">✦</span>
-              <h2 class="thanks-heading">{t('thanksHead')}</h2>
-              <p class="thanks-body">{t('thanksBody')}</p>
-              <div class="thanks-name-section">
-                <label class="thanks-name-label" for="thanks-name">{t('labelContributor')}</label>
-                <input
-                  class="thanks-name-input"
-                  id="thanks-name" type="text"
-                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
-                  value={contributor()}
-                  onInput={(e) => setContributor(e.currentTarget.value)}
-                  placeholder={t('phContributor')}
-                />
-              </div>
-              <button class="thanks-close" onClick={handleThanksClose}>{t('thanksClose')}</button>
-            </div>
-          </Match>
+          <div class="response-section">
+            <span class="response-label">{t('labelResponse')}</span>
+            <textarea
+              class="response-textarea"
+              autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
+              value={response()}
+              onInput={(e) => setResponse(e.currentTarget.value)}
+              placeholder={t('phResponse')}
+              rows={8}
+            />
+          </div>
 
-        </Switch>
+          <div class="name-section">
+            <label class="field-label" for="sp-name">{t('labelContributor')}</label>
+            <textarea
+              ref={nameRef}
+              class="field-input"
+              id="sp-name" rows={1} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} inputmode="text"
+              value={contributor()}
+              onKeyDown={blockEnter}
+              onInput={(e) => { setContributor(stripNewlines(e.currentTarget.value)); autoGrow(e.currentTarget); }}
+              placeholder={t('phContributor')}
+            />
+          </div>
+
+          <div class="form-caption">
+            <span class="form-caption-text">{t('captionLine1')}<br/>{t('captionLine2')}</span>
+          </div>
+
+          <Show when={errorSubmit()}>
+            <p class="submit-err">{errorSubmit()}</p>
+          </Show>
+
+          <div class="form-actions">
+            <button class="cancel-btn" onClick={close}>{t('cancel')}</button>
+            <button class="submit-btn" onClick={handleSubmit} disabled={submitting()}>
+              {t('submit')}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

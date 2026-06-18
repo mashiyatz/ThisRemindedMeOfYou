@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{{ PRODUCT_NAME }}}</title>
 
+  <script>
+    // Reduced-motion / e-ink mode: resolved here, before either runtime loads.
+    // ?motion=off forces it on, ?motion=on forces it off (overrides the device
+    // preference), no param honors prefers-reduced-motion. Unity reads this
+    // via JS_GetReducedMotion (jslib); the SolidJS bundle reads it directly.
+    (function () {
+      var motion = new URLSearchParams(location.search).get("motion");
+      window.__reducedMotion = motion !== null
+        ? motion === "off"
+        : window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (window.__reducedMotion)
+        document.documentElement.classList.add("reduced-motion");
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
@@ -83,6 +98,13 @@
       opacity: 0.7;
       letter-spacing: 0.04em;
     }
+
+    /* The loading bar renders before the bundle CSS loads, so its
+       reduced-motion exception lives here rather than in motion.css */
+    html.reduced-motion #unity-loading-bar,
+    html.reduced-motion #unity-progress-bar-full {
+      transition: none;
+    }
   </style>
 </head>
 <body>
@@ -116,13 +138,25 @@
       codeUrl:            "Build/{{{ CODE_FILENAME }}}",
       enableStreamingDownload: true,
       streamingAssetsUrl: "StreamingAssets",
+      // Reduced/e-ink mode: render the 3D scene at CSS resolution instead of
+      // native DPI (~4x fewer pixels on the high-DPI tablet). The HTML overlay
+      // is browser-rendered and keeps full crispness; the e-ink panel can't
+      // show the difference in the scene, but every wasm frame gets much
+      // cheaper, which is what keeps form typing responsive.
+      devicePixelRatio: window.__reducedMotion ? 1 : (window.devicePixelRatio || 1),
       companyName:        "{{{ COMPANY_NAME }}}",
       productName:        "{{{ PRODUCT_NAME }}}",
       productVersion:     "{{{ PRODUCT_VERSION }}}",
       // Cache the big files immutably so kiosk reloads serve them from
       // IndexedDB instead of re-downloading. Overrides Unity's default
       // "must-revalidate" and survives every rebuild (set here, not in loader.js).
+      // Only on https (= the production deploy): build file URLs don't change
+      // between rebuilds, so on any http test origin (localhost, LAN IPs)
+      // "immutable" + IndexedDB would serve stale wasm after a rebuild
+      // (survives normal cache clears and Shift+reload).
       cacheControl: function (url) {
+        if (location.protocol !== "https:")
+          return "no-store";
         if (url == config.dataUrl || url == config.codeUrl || url == config.frameworkUrl)
           return "immutable";
         return "no-store";

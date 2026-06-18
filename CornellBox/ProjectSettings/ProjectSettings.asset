@@ -718,12 +718,12 @@ PlayerSettings:
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
   webGLMemorySize: 16
-  webGLExceptionSupport: 1
-  webGLNameFilesAsHashes: 0
+  webGLExceptionSupport: 0
+  webGLNameFilesAsHashes: 1
   webGLShowDiagnostics: 0
   webGLDataCaching: 1
   webGLDebugSymbols: 0
-  webGLEmscriptenArgs: -s ALLOW_TABLE_GROWTH=1
+  webGLEmscriptenArgs: 
   webGLModulesDirectory: 
   webGLTemplate: PROJECT:SolidJSHost
   webGLAnalyzeBuildSize: 0

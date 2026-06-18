@@ -95,6 +95,10 @@ public class WebGLBridge : MonoBehaviour
 
     public void ReceiveClosePanel()
     {
+        // SendMessage runs synchronously between frames — restore the frame
+        // rate here rather than waiting for V2PlayerController.Update, which
+        // at ReducedSubmittingFps could be up to a second away.
+        if (MotionConfig.Reduced) Application.targetFrameRate = V2PlayerController.ReducedFps;
         if (uiBridge != null) uiBridge.ClosePanel();
     }
 
@@ -115,13 +119,13 @@ public class WebGLBridge : MonoBehaviour
         }
     }
 
-    /// <summary>Expects JSON: {"title":"...","author":"...","response":"...","isHandwritten":false,"wantsNarrated":false}</summary>
+    /// <summary>Expects JSON: {"title":"...","author":"...","response":"...","isHandwritten":false,"wantsNarrated":false,"coverImageUrl":"..."}</summary>
     public void ReceiveSubmit(string json)
     {
         if (uiBridge == null) return;
         var data = JsonUtility.FromJson<SubmitPayload>(json);
         if (data != null)
-            uiBridge.SubmitBook(data.title, data.author, data.response, data.isHandwritten, data.wantsNarrated);
+            uiBridge.SubmitBook(data.title, data.author, data.response, data.isHandwritten, data.wantsNarrated, data.coverImageUrl);
     }
 
     // ── JSON payload types ────────────────────────────────────────────────────
@@ -141,5 +145,6 @@ public class WebGLBridge : MonoBehaviour
         public string response;
         public bool   isHandwritten;
         public bool   wantsNarrated;
+        public string coverImageUrl;
     }
 }

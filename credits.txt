@@ -6,62 +6,28 @@
 "Rustic chair" (https://skfb.ly/TZIr)
   by Araon — CC Attribution (http://creativecommons.org/licenses/by/4.0/)
 
-Floor tile material
-  by Nobiax / Yughues (www.artstation.com/yughues, yughues@protonmail.com)
+Bookshelf (https://skfb.ly/8df6adc6)
+  "Chocolate Beech Bookshelf" by Brandon Westlake — CC Attribution
+  (via Idmenthal on Sketchfab)
 
-Big Furniture Pack (Asset Store)
-  — bookshelves, cloth, wood, curtains, television set, house plants
+3dizart Books Pack (Unity Asset Store)
+  by 3diz-art (Sketchfab/CG-Artist, Kazakhstan) — book mesh, textures, prefabs
+  https://sketchfab.com/3diz-art
 
-QA_Books (Asset Store)
-  — 3D book models (Books_03–34, BookS_04–11)
-
-3dizart Books Pack (Asset Store)
-  — book mesh, textures, prefabs
-
-Free Rug Pack (Asset Store)
-  — by Azerilo
-
-3Dfrk Frames with pictures (Asset Store)
-  — picture frames and paintings (Paint_01–08)
-
-TazaQuintero (Asset Store)
-  — tableware/decorative object
-
-Modular Shelf Set (ShelfObjects, Asset Store)
-  — shelf prefabs (types A–L)
-
-PBR Modular Reading Room (URP) (Asset Store)
-  — modular room kit with materials, meshes, textures
-
-── 3D Environments (Custom / Commissioned) ─────────────────────
+── 3D Environments ──────────────────────────────────────────
 
 Gwangju_3D asset
-  — 3D scenes of Gwangju landmarks:
+  by Gwangju Arts & Culture Humanities Story Platform (광주문화예술인문스토리플랫폼)
+  — Gwangju Metropolitan City cultural heritage digital archive project.
+    Free 3D assets published on Unity Asset Store and Sketchfab (CC Attribution).
+    Scenes used as the outdoor environment:
     • Gungjeon Bakery (06_GungjeonBakery)
     • Dong-A Silk (27_Dong-A_Silk)
     • Jeonbyungwon Tailor Shop (24_JeonbyungwonTailorShop)
-  Includes reflection probes, lightmaps, scene profiles.
+  Includes tree/rock/bush prefabs, ground materials, lightmaps, scene profiles.
+  https://inmun-story.com / https://sketchfab.com/gwangju_inmunstory
 
-── Plugins & Packages ─────────────────────────────────────────
-
-DOTween (https://dotween.demigiant.com/)
-  by Demigiant — animation tweening library (Asset Store)
-
-TextMesh Pro
-  — Unity text rendering package (SDF fonts, shaders)
-
-Customizable Skybox (Asset Store)
-  — skybox material pack
-
-[Config], [Public] (Asset Store / Unity Packages)
-  — utility asset packages
-
-── Textures ────────────────────────────────────────────────────
-
-TextureHaven bricks_4k (https://texturehaven.com/)
-  — CC0 textures (brick 4 diffuse, normal, bump, displacement, AO)
-
-── Fonts ───────────────────────────────────────────────────────
+── Fonts ──────────────────────────────────────────────────────
 
 Lora (https://fonts.google.com/specimen/Lora)
   — SIL Open Font License 1.1
@@ -72,9 +38,34 @@ IM Fell English (https://fonts.google.com/specimen/IM+Fell+English)
 Noto Serif KR (https://fonts.google.com/specimen/Noto+Serif+KR)
   — SIL Open Font License 1.1
 
-── Audio ───────────────────────────────────────────────────────
+── Audio ──────────────────────────────────────────────────────
 
 Voice recordings: custom recordings by the project authors.
 
 SFX: sources unknown — (beep, bgm, pageFlip, swoosh).
   If you recognize these, please open an issue for proper attribution.
+
+── Unity Plugins & Packages ─────────────────────────────────
+
+DOTween (https://dotween.demigiant.com/)
+  by Demigiant — animation tweening library (Asset Store)
+
+TextMesh Pro
+  — Unity text rendering package (SDF fonts, shaders)
+
+Cinemachine
+  — Unity camera system package
+
+UnityGLTF (https://github.com/babylontoolkit/unitygltf)
+  by Khronos Group — GLTF import/export (MIT license)
+
+── Build & UI Tooling ───────────────────────────────────────
+
+Needle Tools (https://needle.tools)
+  — Unity-to-WebGL export pipeline
+
+SolidJS (https://www.solidjs.com/)
+  — reactive UI library (MIT license)
+
+@supabase/supabase-js (https://supabase.com/)
+  — Supabase client library (MIT license)

@@ -1,4 +1,5 @@
 {
   "roomId": "default",
-  "roomName": "Default Room"
+  "roomName": "Default Room",
+  "reducedMotion": false
 }

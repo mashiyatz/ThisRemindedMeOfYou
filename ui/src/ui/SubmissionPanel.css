@@ -63,16 +63,8 @@
 .panel.is-ko .field-input,
 .panel.is-ko .cancel-btn,
 .panel.is-ko .submit-btn,
-.panel.is-ko .confirm-heading,
-.panel.is-ko .confirm-body,
-.panel.is-ko .confirm-yes,
-.panel.is-ko .confirm-no,
-.panel.is-ko .thanks-heading,
-.panel.is-ko .thanks-body,
-.panel.is-ko .thanks-close,
 .panel.is-ko .response-label,
-.panel.is-ko .field-label,
-.panel.is-ko .thanks-name-input { font-family: 'Noto Serif KR', Georgia, serif; }
+.panel.is-ko .field-label { font-family: 'Noto Serif KR', Georgia, serif; }
 
 /* ── Shared animations ────────────────────────────────────── */
 @keyframes stepIn {
@@ -85,13 +77,7 @@
   to   { opacity: 1; transform: translateY(0);   }
 }
 
-@keyframes promptFadeIn {
-  from { opacity: 0.25; }
-  to   { opacity: 1;     }
-}
-
-
-/* ── Step 2: Form ─────────────────────────────────────────── */
+/* ── Form ─────────────────────────────────────────────────── */
 .form-step {
   display: flex;
   flex-direction: column;
@@ -124,7 +110,7 @@
 
 .form-date {
   font-family: var(--ff-body);
-  font-size: 0.75rem; /* 12px — was 10px; respects browser font-size settings */
+  font-size: 0.75rem;
   font-style: italic;
   color: var(--ink-light);
   letter-spacing: 0.04em;
@@ -152,150 +138,16 @@
   color: var(--accent-warm);
 }
 
-/* — Book row — */
-.book-row {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 24px;
-  padding: 18px 36px;
-  /* no border — breathing room is handled by padding alone */
+/* ── Mobile-only cover (sidebar is hidden < 768px) ────────── */
+.cover-mobile {
+  display: none;
 }
 
-.cover-col {
+/* ── Fields (title + author, full width) ──────────────────── */
+.fields-section {
+  padding: 18px 36px 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.cover-frame {
-  width: 130px;
-  height: 185px;
-  border: 1px solid var(--border);
-  background: var(--cream-mid);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 3px 10px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.4);
-  flex-shrink: 0;
-}
-
-.cover-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  animation: fadeIn 0.4s ease both;
-}
-
-.cover-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.35);
-  border: none;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 1.1rem;
-  line-height: 1;
-  padding: 10px 4px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  z-index: 2;
-}
-
-.cover-arrow:hover {
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-}
-
-.cover-arrow-prev { left: 0; border-radius: 0 3px 3px 0; }
-.cover-arrow-next { right: 0; border-radius: 3px 0 0 3px; }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.cover-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.cover-placeholder svg {
-  width: 22px;
-  height: 22px;
-  color: var(--ink-light);
-  opacity: 0.3;
-}
-
-.cover-placeholder-label {
-  font-family: var(--ff-body);
-  font-size: 0.6875rem; /* 11px — was 8px; decorative but still needs to be legible */
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-  opacity: 0.55;
-}
-
-.cover-loader {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: var(--cream-mid);
-}
-
-.cover-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--ink-light);
-  animation: dotPulse 1.1s ease-in-out infinite;
-}
-
-.cover-dot:nth-child(2) { animation-delay: 0.18s; }
-.cover-dot:nth-child(3) { animation-delay: 0.36s; }
-
-@keyframes dotPulse {
-  0%, 80%, 100% { transform: scale(0.5); opacity: 0.2; }
-  40%           { transform: scale(1);   opacity: 1;   }
-}
-
-.find-cover-btn {
-  background: none;
-  border: none;
-  font-family: var(--ff-body);
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  padding: 6px 0;
-  margin: -6px 0;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.find-cover-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.find-cover-btn:hover:not(:disabled) { color: var(--accent-warm); }
-.find-cover-btn:disabled { color: var(--ink-light); opacity: 0.5; cursor: default; }
-
-/* — Details column — */
-.details-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
 }
 
 .field-group { margin-bottom: 18px; }
@@ -307,39 +159,47 @@
   font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  /* ink-mid (#5A5040) gives ~6.8:1 on cream — passes WCAG AA */
   color: var(--ink-mid);
   margin-bottom: 5px;
 }
 
+/* A single-row <textarea> styled as an underlined field. Auto-grows via JS
+   (autoGrow) so long titles/names wrap onto extra lines. The small bottom
+   padding keeps the text/placeholder sitting right on the rule, matching the
+   response field. */
 .field-input {
+  display: block;
   width: 100%;
   background: none;
   border: none;
   border-bottom: 1px solid var(--rule-strong);
-  padding: 5px 0 7px;
+  padding: 0;
   font-family: var(--ff-heading);
   font-size: 1rem;
+  line-height: 1.6;
   color: var(--ink);
   outline: none;
+  resize: none;
+  overflow: hidden;
+  overflow-wrap: anywhere;
   transition: border-color 0.25s;
 }
 
 .field-input::placeholder {
   font-style: italic;
+  font-family: var(--ff-body);
+  font-size: 0.9375rem;
   color: var(--ink-light);
   opacity: 0.6;
-  font-size: 0.8125rem; /* 13px in rem */
 }
 
 .field-input:focus { border-bottom-color: var(--accent); }
-/* unified focus style: border-bottom-color only, no extra box-shadow */
 .field-input:focus-visible { outline: none; }
 .field-input.has-error { border-bottom-color: var(--accent-warm); }
 
 .field-err {
   font-family: var(--ff-body);
-  font-size: 0.75rem; /* 12px — was 9px; error messages must be clearly readable */
+  font-size: 0.75rem;
   font-style: italic;
   color: var(--accent-warm);
   letter-spacing: 0.04em;
@@ -347,59 +207,19 @@
   animation: fadeRise 0.2s ease both;
 }
 
-/* — Response — */
+/* ── Response ─────────────────────────────────────────────── */
 .response-section {
-  padding: 18px 36px 18px;
-  /* no border — section separates via padding */
+  padding: 22px 36px 0;
 }
 
 .response-label {
   display: block;
   font-family: var(--ff-body);
-  font-size: 0.6875rem; /* 11px — was 8px; matches .field-label */
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ink-mid); /* better contrast than ink-light at this size */
+  color: var(--ink-mid);
   margin-bottom: 12px;
-}
-
-.response-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.response-header .response-label {
-  margin-bottom: 0;
-}
-
-.prompt-pill {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: var(--ff-body);
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  cursor: pointer;
-  transition: color 0.2s;
-  line-height: 1;
-}
-
-.prompt-pill:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-  border-radius: 2px;
-}
-
-.prompt-pill:hover {
-  color: var(--accent-warm);
-}
-
-.prompt-pill.is-active {
-  color: var(--accent-warm);
 }
 
 .response-textarea {
@@ -407,12 +227,12 @@
   min-height: 160px;
   background: none;
   border: none;
-  border-bottom: 1px solid transparent; /* reserve space for focus indicator */
+  border-bottom: 1px solid transparent;
   outline: none;
   resize: none;
   font-family: var(--ff-body);
   font-style: italic;
-  font-size: 0.9375rem; /* unified with .field-input — was 0.875rem */
+  font-size: 0.9375rem;
   color: var(--ink);
   padding: 0;
   line-height: 26px;
@@ -421,7 +241,7 @@
     transparent 0,
     transparent 25px,
     var(--rule) 25px,
-    var(--rule) 26px  /* matches line-height exactly — was 25px causing off-centre text */
+    var(--rule) 26px
   );
   background-attachment: local;
   transition: border-color 0.25s;
@@ -429,62 +249,43 @@
 
 .response-textarea:focus-visible {
   outline: none;
-  /* unified with .field-input:focus — border-bottom accent, no box-shadow */
   border-bottom-color: var(--accent);
 }
 
 .response-textarea::placeholder {
-  color: var(--ink-light);
-  opacity: 0.6; /* unified with .field-input::placeholder — was 0.5 */
-}
-
-/* — Contributor name input on the thanks page — */
-.thanks-name-section {
-  margin-bottom: 36px;
-  width: 100%;
-  max-width: 240px;
-}
-
-.thanks-name-label {
-  display: block;
   font-family: var(--ff-body);
-  font-size: 0.6875rem;
   font-style: italic;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-  margin-bottom: 8px;
-}
-
-.thanks-name-input {
-  width: 100%;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--rule-strong);
-  padding: 6px 0 8px;
-  font-family: var(--ff-heading);
   font-size: 0.9375rem;
-  color: var(--ink);
-  text-align: center;
-  outline: none;
-  transition: border-color 0.25s;
-}
-
-.thanks-name-input::placeholder {
-  font-style: italic;
   color: var(--ink-light);
   opacity: 0.6;
-  font-size: 0.8125rem;
 }
 
-.thanks-name-input:focus {
-  border-bottom-color: var(--accent);
+/* ── Name (your name) ─────────────────────────────────────── */
+.name-section {
+  padding: 22px 36px 0;
 }
 
-/* — Actions — */
+/* ── Caption between name and actions ─────────────────────── */
+.form-caption {
+  padding: 26px 36px 2px;
+  text-align: center;
+  animation: fadeRise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.1s;
+}
+
+.form-caption-text {
+  font-family: var(--ff-body);
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--ink-light);
+  opacity: 0.5;
+  letter-spacing: 0.04em;
+}
+
+/* ── Actions ──────────────────────────────────────────────── */
 .submit-err {
   font-family: var(--ff-body);
-  font-size: 0.75rem; /* 12px — was 10px; error messages must be clearly readable */
+  font-size: 0.75rem;
   font-style: italic;
   color: var(--accent-warm);
   padding: 10px 36px 0;
@@ -492,7 +293,7 @@
 }
 
 .form-actions {
-  padding: 14px 36px 28px;
+  padding: 24px 36px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -503,12 +304,11 @@
   background: none;
   border: none;
   font-family: var(--ff-body);
-  font-size: 0.75rem; /* 12px — was 10px */
+  font-size: 0.75rem;
   font-style: italic;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-light);
-  /* generous touch target */
   padding: 10px 4px;
   margin: -10px -4px;
   cursor: pointer;
@@ -529,13 +329,12 @@
   padding: 12px 28px;
   font-family: var(--ff-body);
   font-style: italic;
-  font-size: 0.75rem; /* 12px — was 10px */
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--cream);
   cursor: pointer;
   transition: background 0.2s, transform 0.12s;
-  /* minimum touch target: 44px tall via padding (12+12+font ≈ 44) */
 }
 
 .submit-btn:hover:not(:disabled) { background: var(--accent-warm); }
@@ -546,182 +345,98 @@
   outline-offset: 3px;
 }
 
-/* ── Step 3: Confirm ──────────────────────────────────────── */
-.confirm-step {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 48px 56px;
-  text-align: center;
-  animation: stepIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* ── Large screens ────────────────────────────────────────── */
+@media (min-width: 1200px) {
+  .panel { width: min(560px, 44vw); }
+
+  .form-caption     { padding: 28px 44px 4px; }
+  .form-header      { padding: 28px 44px 14px; gap: 14px; }
+  .cover-mobile     { padding: 22px 44px 0; }
+  .fields-section   { padding: 22px 44px 0; }
+  .response-section { padding: 26px 44px 0; }
+  .name-section     { padding: 26px 44px 0; }
+  .form-actions     { padding: 28px 44px 32px; }
+  .submit-err       { padding: 12px 44px 0; }
+
+  .form-heading      { font-size: clamp(1.25rem, 2vw, 1.75rem); }
+  .field-input       { font-size: 1.125rem; }
+  .field-input::placeholder { font-size: 1.0625rem; }
+  .response-textarea { font-size: 1.0625rem; min-height: 200px; }
+  .response-textarea::placeholder { font-size: 1.0625rem; }
+  .form-date         { font-size: 0.8125rem; }
+  .lang-pill         { font-size: 0.75rem; padding: 5px 11px; }
+  .field-label       { font-size: 0.8125rem; }
+  .response-label    { font-size: 0.8125rem; }
+  .cancel-btn        { font-size: 0.8125rem; }
+  .submit-btn        { font-size: 0.8125rem; padding: 14px 32px; }
+  .field-err         { font-size: 0.8125rem; }
+  .submit-err        { font-size: 0.8125rem; }
 }
 
-.confirm-ornament {
-  display: block;
-  font-family: var(--ff-heading);
-  font-size: 1.375rem; /* was 22px — converted to rem so it scales with browser prefs */
-  color: var(--gold);
-  opacity: 0.6;
-  margin-bottom: 22px;
-  letter-spacing: 0.1em;
-}
+@media (min-width: 1600px) {
+  .panel { width: min(620px, 40vw); }
 
-.confirm-heading {
-  font-family: var(--ff-heading);
-  font-style: italic;
-  font-weight: normal;
-  font-size: clamp(1.125rem, 1.5vw, 1.25rem); /* 18–20px, fluid */
-  color: var(--ink);
-  line-height: 1.35;
-  margin-bottom: 12px;
-}
+  .form-caption     { padding: 30px 52px 6px; }
+  .form-header      { padding: 32px 52px 16px; gap: 16px; }
+  .cover-mobile     { padding: 26px 52px 0; }
+  .fields-section   { padding: 26px 52px 0; }
+  .response-section { padding: 30px 52px 0; }
+  .name-section     { padding: 30px 52px 0; }
+  .form-actions     { padding: 32px 52px 36px; }
+  .submit-err       { padding: 14px 52px 0; }
 
-.confirm-body {
-  font-family: var(--ff-body);
-  font-size: 0.875rem; /* 14px — was 13px; converted to rem */
-  font-style: italic;
-  color: var(--ink-light);
-  line-height: 1.75;
-  max-width: 280px;
-  margin-bottom: 36px;
-}
-
-.confirm-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  max-width: 230px;
-}
-
-.confirm-yes {
-  background: var(--accent);
-  border: none;
-  padding: 13px 0;
-  font-family: var(--ff-body);
-  font-style: italic;
-  font-size: 0.75rem; /* 12px — was 10px */
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.confirm-yes:hover { background: var(--accent-warm); }
-.confirm-yes:focus-visible {
-  outline: 2px solid var(--accent-warm);
-  outline-offset: 3px;
-}
-
-.confirm-no {
-  background: none;
-  border: 1px solid var(--border);
-  padding: 12px 0;
-  font-family: var(--ff-body);
-  font-style: italic;
-  font-size: 0.75rem; /* 12px — was 10px */
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.confirm-no:hover { border-color: var(--ink-mid); color: var(--ink); }
-.confirm-no:focus-visible {
-  outline: 2px solid var(--rule-strong);
-  outline-offset: 3px;
-}
-
-/* ── Step 4: Thanks ───────────────────────────────────────── */
-.thanks-step {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 72px 48px 64px;
-  text-align: center;
-  animation: stepIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.thanks-ornament {
-  display: block;
-  font-family: var(--ff-heading);
-  font-size: 0.6875rem; /* was 11px — converted to rem */
-  letter-spacing: 0.3em;
-  color: var(--gold);
-  margin-bottom: 32px;
-}
-
-.thanks-heading {
-  font-family: var(--ff-heading);
-  font-style: italic;
-  font-weight: normal;
-  font-size: clamp(1.25rem, 1.8vw, 1.4375rem); /* 20–23px, fluid */
-  color: var(--ink);
-  line-height: 1.35;
-  margin-bottom: 14px;
-}
-
-.thanks-body {
-  font-family: var(--ff-body);
-  font-size: 0.875rem; /* 14px — was 13.5px; converted to rem */
-  font-style: italic;
-  color: var(--ink-light);
-  line-height: 1.75;
-  max-width: 260px;
-  margin-bottom: 40px;
-}
-
-.thanks-close {
-  background: none;
-  border: 1px solid var(--border);
-  padding: 13px 28px;
-  font-family: var(--ff-body);
-  font-style: italic;
-  font-size: 0.75rem; /* 12px — was 10px */
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.thanks-close:hover { border-color: var(--ink-mid); color: var(--ink); }
-.thanks-close:focus-visible {
-  outline: 2px solid var(--rule-strong);
-  outline-offset: 3px;
+  .form-heading      { font-size: clamp(1.25rem, 2vw, 2rem); }
+  .field-input       { font-size: 1.25rem; }
+  .field-input::placeholder { font-size: 1.125rem; }
+  .response-textarea { font-size: 1.125rem; min-height: 240px; }
+  .response-textarea::placeholder { font-size: 1.125rem; }
+  .form-date         { font-size: 0.875rem; }
+  .lang-pill         { font-size: 0.8125rem; padding: 6px 12px; }
+  .field-label       { font-size: 0.875rem; }
+  .response-label    { font-size: 0.875rem; }
+  .cancel-btn        { font-size: 0.875rem; }
+  .submit-btn        { font-size: 0.875rem; padding: 16px 36px; }
+  .field-err         { font-size: 0.875rem; }
+  .submit-err        { font-size: 0.875rem; }
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sidebar cover is hidden below 768px — show the in-panel preview instead. */
+  .cover-mobile {
+    display: flex;
+    justify-content: center;
+    padding: 18px 36px 0;
+  }
+
+  .cover-frame-mobile {
+    width: min(190px, 50vw);
+  }
+}
+
 @media (max-width: 420px) {
-  .form-header         { padding: 20px 24px 18px; }
-  .book-row            { padding: 20px 24px; gap: 16px; }
-  .response-section    { padding: 16px 24px 16px; }
-  .form-actions        { padding: 14px 24px 26px; }
-  .confirm-step        { padding: 48px 32px 40px; }
-  .thanks-step         { padding: 56px 32px 48px; }
-  .thanks-name-section { max-width: 200px; }
-  .submit-err          { padding: 10px 24px 0; }
+  .form-caption     { padding: 26px 24px 2px; }
+  .form-header      { padding: 20px 24px 12px; }
+  .cover-mobile     { padding: 16px 24px 0; }
+  .fields-section   { padding: 16px 24px 0; }
+  .response-section { padding: 18px 24px 0; }
+  .name-section     { padding: 18px 24px 0; }
+  .form-actions     { padding: 22px 24px 26px; }
+  .submit-err       { padding: 10px 24px 0; }
 }
 
 /* Very narrow screens (e.g. iPhone SE, Galaxy A) */
 @media (max-width: 360px) {
-  .form-header         { padding: 16px 20px 14px; }
-  .book-row            { padding: 16px 20px; gap: 14px; grid-template-columns: 110px 1fr; }
-  .cover-frame         { width: 100px; height: 140px; }
-  .response-section    { padding: 12px 20px 16px; }
-  .form-actions        { padding: 12px 20px 22px; }
-  .confirm-step        { padding: 36px 24px 30px; }
-  .thanks-step         { padding: 44px 24px 36px; }
-  .submit-err          { padding: 8px 20px 0; }
+  .form-caption     { padding: 26px 20px 2px; }
+  .form-header      { padding: 16px 20px 12px; }
+  .cover-mobile     { padding: 14px 20px 0; }
+  .fields-section   { padding: 14px 20px 0; }
+  .response-section { padding: 16px 20px 0; }
+  .name-section     { padding: 16px 20px 0; }
+  .form-actions     { padding: 20px 20px 22px; }
+  .submit-err       { padding: 8px 20px 0; }
 
-  /* Slightly larger relative sizes on tiny screens to compensate for small viewport */
   .form-heading      { font-size: 1.0625rem; }
   .field-input       { font-size: 1rem; }     /* 16px avoids iOS auto-zoom on focus */
-  .response-textarea { font-size: 1rem; }     /* same */
+  .response-textarea { font-size: 1rem; }
 }

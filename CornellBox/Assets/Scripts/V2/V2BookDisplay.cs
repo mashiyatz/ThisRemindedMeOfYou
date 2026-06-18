@@ -178,6 +178,9 @@ public class V2BookDisplay : MonoBehaviour
 
     private void StartBobbing()
     {
+        // E-ink mode: an infinite Yoyo loop can't be collapsed by DOTween.timeScale
+        if (MotionConfig.Reduced) return;
+
         _bobPosTween?.Kill();
         _bobRotTween?.Kill();
 

@@ -133,11 +133,18 @@ public class V2UIBridge : MonoBehaviour
         coverService.FetchCover(title, author);
     }
 
-    public void SubmitBook(string title, string author, string response, bool isHandwritten, bool wantsNarrated)
+    public void SubmitBook(string title, string author, string response, bool isHandwritten, bool wantsNarrated, string coverImageUrl = "")
     {
         bool fetchSucceeded = _fetchedCover != null;
         var cover = fetchSucceeded ? _fetchedCover
                                    : BookCoverTextureComposer.GenerateSolidCoverWithText(title, author);
+
+        // Prefer the cover the user picked in the web overlay carousel; fall back
+        // to the first cover Unity fetched. The spawn (SpawnBookWithTexture)
+        // downloads this URL so the in-scene book matches the saved selection.
+        string finalUrl = !string.IsNullOrEmpty(coverImageUrl)
+            ? coverImageUrl
+            : (fetchSucceeded ? (coverService?.LastFetchedUrl ?? "") : "");
 
         var entry = new BookEntry
         {
@@ -147,7 +154,7 @@ public class V2UIBridge : MonoBehaviour
             responseText  = response,
             isHandwritten = isHandwritten,
             wantsNarrated = wantsNarrated,
-            coverImageUrl = fetchSucceeded ? (coverService?.LastFetchedUrl ?? "") : "",
+            coverImageUrl = finalUrl,
         };
 
         // Supabase write is handled by the web layer — Unity only prepares the scene spawn.
@@ -191,6 +198,14 @@ public class V2UIBridge : MonoBehaviour
     private void HandleCoverBusy(bool busy)
     {
         SetCoverLoading(busy);
+
+        // Reduced mode runs SUBMITTING at a very low fps to keep the main thread
+        // free for form typing, but the cover fetch's coroutine/web-request steps
+        // are frame-quantized — boost while busy (nobody types during the wait).
+        if (MotionConfig.Reduced)
+            Application.targetFrameRate = !busy && V2PlayerController.currentState == V2PlayerController.PlayerState.SUBMITTING
+                ? V2PlayerController.ReducedSubmittingFps
+                : V2PlayerController.ReducedFps;
 
         // If not busy and no cover was fetched, generate fallback so TSX sees a URL change
         if (!busy && _fetchedCover == null)
